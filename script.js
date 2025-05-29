@@ -1,3 +1,5 @@
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 const statuses = [
   "Sales Order Being Prepared",
   "Fully Prepared, Transferred to Loading Area",
