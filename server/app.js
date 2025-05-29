@@ -3,7 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const sequelize = require('./database');
 const authRoutes = require('./routes/auth');
-const orderRoutes = require('./routes/orders');
+const orderRoutes = require('./routes/order');
 
 dotenv.config();
 

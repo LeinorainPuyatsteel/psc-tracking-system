@@ -1,9 +1,16 @@
 const sequelize = require('./database');
 const Order = require('./models/Order');
+const User = require('./models/User');
+const bcrypt = require('bcrypt');
 
 const seed = async () => {
   await sequelize.sync({ force: true });
 
+  // Seed user
+  const hashed = await bcrypt.hash('test123', 10);
+  await User.create({ username: 'admin', password: hashed });
+
+  // Seed orders
   await Order.bulkCreate([
     { id: 1001, customer: 'Alpha Corp', status: 'Sales Order Being Prepared' },
     { id: 1002, customer: 'Beta Inc', status: 'Fully Prepared, Transferred to Loading Area' },
@@ -14,7 +21,7 @@ const seed = async () => {
     { id: 1007, customer: 'Eta Services', status: 'Ready for Dispatch with no Discrepancy' },
   ]);
 
-  console.log('Seed complete');
+  console.log('✅ Seed complete: User and Orders created');
   process.exit();
 };
 

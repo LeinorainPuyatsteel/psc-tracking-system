@@ -2,29 +2,37 @@
   <div class="container-fluid py-4">
     <h4 class="mb-4">PSC Tracking System</h4>
 
-    <!-- Tabs on Mobile -->
+    <!-- Mobile Tabs -->
     <ul class="nav nav-tabs d-md-none mb-3" id="orderTabs">
-      <li v-for="(status, index) in statuses" :key="status" class="nav-item">
-        <button class="nav-link" :class="{ active: index === 0 }" data-bs-toggle="tab" :data-bs-target="'#' + slugify(status)">
+      <li class="nav-item" v-for="(status, index) in statuses" :key="status">
+        <button class="nav-link" :class="{ active: index === 0 }"
+          data-bs-toggle="tab"
+          :data-bs-target="'#' + slugify(status)"
+          type="button"
+        >
           {{ status }}
         </button>
       </li>
     </ul>
 
-    <div class="tab-content d-md-none">
-      <div v-for="(status, index) in statuses" :key="status" :id="slugify(status)"
-           class="tab-pane fade" :class="{ 'show active': index === 0 }">
+    <div class="tab-content d-md-none" id="tabContentMobile">
+      <div
+        class="tab-pane fade"
+        :class="{ 'show active': index === 0 }"
+        v-for="(status, index) in statuses"
+        :id="slugify(status)"
+        :key="status"
+      >
         <div v-for="order in filteredOrders(status)" :key="order.id" class="card mb-2">
           <div class="card-body">
-            Sales Order #{{ order.id }} - {{ order.customer }}
-            <br>
+            Sales Order #{{ order.id }} - {{ order.customer }}<br />
             <span class="badge bg-secondary">{{ order.status }}</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Kanban on Desktop -->
+    <!-- Desktop Kanban -->
     <div class="kanban-board d-none d-md-flex">
       <div class="kanban-column" v-for="status in statuses" :key="status">
         <h6>{{ status }}</h6>
@@ -37,7 +45,9 @@
         >
           <template #item="{ element }">
             <div class="card mb-2 draggable-card">
-              <div class="card-body">Sales Order #{{ element.id }} - {{ element.customer }}</div>
+              <div class="card-body">
+                Sales Order #{{ element.id }} - {{ element.customer }}
+              </div>
             </div>
           </template>
         </draggable>
@@ -59,15 +69,14 @@ const statuses = [
   'Fully Loaded and Ready for Dispatch',
   'Fully Loaded and Waiting for Dispatch',
   'Truck is Being Weighed',
-  'Ready for Dispatch with no Discrepancy'
+  'Ready for Dispatch with no Discrepancy',
 ]
 
-function slugify(text) {
-  return text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '')
-}
+const slugify = (text) =>
+  text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '')
 
 function filteredOrders(status) {
-  return orders.value.filter(o => o.status === status)
+  return orders.value.filter((order) => order.status === status)
 }
 
 async function fetchOrders() {
