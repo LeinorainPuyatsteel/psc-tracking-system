@@ -31,6 +31,7 @@ const error = ref('')
 const router = useRouter()
 
 async function login() {
+  console.log('Login triggered')
   try {
     const res = await axios.post('/auth/login', {
       username: username.value,
@@ -39,6 +40,7 @@ async function login() {
     localStorage.setItem('token', res.data.token)
     router.push('/dashboard')
   } catch (err) {
+    console.log(err.response?.data || err.message)
     error.value = 'Invalid username or password.'
   }
 }
