@@ -11,6 +11,7 @@
           type="button"
           @click="activeTab = index"
         >
+          <font-awesome-icon :icon="iconMap[status]" class="me-2" />
           {{ status }}
         </button>
       </li>
@@ -45,7 +46,13 @@
     <!-- Desktop Kanban -->
     <div class="kanban-board d-none d-md-flex gap-3">
       <div class="kanban-column flex-grow-1" v-for="status in statuses" :key="status">
-        <h6>{{ status }}</h6>
+        <h6>
+          <font-awesome-icon :icon="iconMap[status]" class="me-2" />
+          {{ status }}
+        </h6>
+        <div v-if="orderMap[status]?.length === 0" class="text-muted small mt-2 text-center">
+          No Sales Order for this stage.
+        </div>
         <draggable
           :list="orderMap[status]"
           :group="'orders'"
@@ -62,66 +69,73 @@
             </div>
           </template>
         </draggable>
-        <div v-if="orderMap[status]?.length === 0" class="text-muted small mt-2">
-          No orders
-        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
-import draggable from 'vuedraggable'
-import axios from '@/api'
+  import { onMounted, reactive, ref } from 'vue'
+  import draggable from 'vuedraggable'
+  import axios from '@/api'
 
-const activeTab = ref(0)
+  const activeTab = ref(0)
 
-const statuses = [
-  'Sales Order Being Prepared',
-  'Fully Prepared, Transferred to Loading Area',
-  'Loading is Ongoing',
-  'Fully Loaded and Ready for Dispatch',
-  'Fully Loaded and Waiting for Dispatch',
-  'Truck is Being Weighed',
-  'Ready for Dispatch with no Discrepancy',
-]
+  const statuses = [
+    'Sales Order Being Prepared',
+    'Fully Prepared, Transferred to Loading Area',
+    'Loading is Ongoing',
+    'Fully Loaded and Ready for Dispatch',
+    'Fully Loaded and Waiting for Dispatch',
+    'Truck is Being Weighed',
+    'Ready for Dispatch with no Discrepancy',
+  ]
 
-const slugify = (text) =>
-  text.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '')
-
-const orderMap = reactive({})
-
-// Initialize empty arrays for each status
-function resetOrderMap() {
-  statuses.forEach((status) => {
-    orderMap[status] = []
-  })
+  const iconMap = {
+  'Sales Order Being Prepared': 'clipboard-list',
+  'Fully Prepared, Transferred to Loading Area': 'dolly',
+  'Loading is Ongoing': 'truck-loading',
+  'Fully Loaded and Ready for Dispatch': 'truck-front',
+  'Fully Loaded and Waiting for Dispatch': 'clock',
+  'Truck is Being Weighed': 'weight',
+  'Ready for Dispatch with no Discrepancy': 'truck-fast',
 }
 
-async function fetchOrders() {
-  const res = await axios.get('/orders')
-  resetOrderMap()
+  const slugify = (text) =>
+    text.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '')
 
-  res.data.forEach((order) => {
-    if (!orderMap[order.status]) {
-      orderMap[order.status] = []
-    }
-    orderMap[order.status].push(order)
-  })
-}
+  const orderMap = reactive({})
 
-async function onDragEnd(event) {
-  const moved = event.item.__draggable_context?.element
-  const newStatus = event.to?.dataset?.status
-  if (!moved || !newStatus) return
+  // Initialize empty arrays for each status
+  function resetOrderMap() {
+    statuses.forEach((status) => {
+      orderMap[status] = []
+    })
+  }
 
-  moved.status = newStatus
-  const statusIndex = statuses.indexOf(newStatus) + 1
+  async function fetchOrders() {
+    const res = await axios.get('/orders')
+    resetOrderMap()
 
-  console.log('Updating order:', moved.id, 'to status_id:', statusIndex)
-  await axios.put(`/orders/${moved.id}`, { status_id: statusIndex })
-}
+    res.data.forEach((order) => {
+      if (!orderMap[order.status]) {
+        orderMap[order.status] = []
+      }
+      orderMap[order.status].push(order)
+    })
+  }
 
-onMounted(fetchOrders)
+  async function onDragEnd(event) {
+    const moved = event.item.__draggable_context?.element
+    const newStatus = event.to?.dataset?.status
+    if (!moved || !newStatus) return
+
+    moved.status = newStatus
+    const statusIndex = statuses.indexOf(newStatus) + 1
+
+    console.log('Updating order:', moved.id, 'to status_id:', statusIndex)
+    await axios.put(`/orders/${moved.id}`, { status_id: statusIndex })
+  }
+
+  onMounted(fetchOrders)
 </script>

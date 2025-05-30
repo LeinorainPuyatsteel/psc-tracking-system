@@ -1,8 +1,10 @@
 <template>
-  <div class="container py-5">
-    <h3 class="mb-3 text-center">PSC Login</h3>
+  <div class="container d-flex align-items-center justify-content-center">
     <div class="row justify-content-center">
-      <div class="col-md-4">
+      <h3 class="mb-3 text-center">PSC Login</h3>
+    </div>
+    <div class="row justify-content-center">
+      <div class="col-xl-12">
         <form @submit.prevent="login">
           <div class="mb-3">
             <label class="form-label">Username</label>
