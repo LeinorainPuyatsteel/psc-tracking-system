@@ -1,4 +1,3 @@
-// seed.js
 const bcrypt = require('bcrypt');
 const {
   sequelize,
@@ -6,7 +5,7 @@ const {
   Transaction,
   Status,
   User
-} = require('./models'); // 👈 import all models & associations
+} = require('./models');
 
 const seed = async () => {
   await sequelize.sync({ force: true });
@@ -21,13 +20,14 @@ const seed = async () => {
 
   // Seed status
   await Status.bulkCreate([
-    { status: 'Sales Order Being Prepared' },
-    { status: 'Fully Prepared, Transferred to Loading Area' },
+    { status: 'Sales Order is Being Prepared' },
+    { status: 'Sales Order has been Fully Prepared and Transferred to the Loading Area' },
     { status: 'Loading is Ongoing' },
-    { status: 'Fully Loaded and Ready for Dispatch' },
-    { status: 'Fully Loaded and Waiting for Dispatch' },
+    { status: 'Fully Loaded' },
+    { status: 'Waiting to be Dispatched' },
     { status: 'Truck is Being Weighed' },
-    { status: 'Ready for Dispatch with no Discrepancy' }
+    { status: 'Ready for Dispatch with no Discrepancy' },
+    { status: 'Truck is Dispatched' }
   ]);
 
   // Seed sales orders

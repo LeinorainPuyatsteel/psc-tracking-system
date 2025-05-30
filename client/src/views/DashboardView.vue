@@ -25,7 +25,7 @@
         :id="slugify(status)"
         :key="status"
       >
-        <div v-if="orderMap[status]?.length">
+        <!-- <div v-if="orderMap[status]?.length">
           <div
             v-for="order in orderMap[status]"
             :key="order.id"
@@ -39,7 +39,27 @@
         </div>
         <div v-else class="text-muted text-center py-2">
           No orders in this status
+        </div> -->
+
+        <div v-for="order in orderMap[status]" :key="order.id" class="card mb-2">
+          <div class="card-body">
+            <div>
+              Sales Order #{{ order.id }} - {{ order.customer }}<br />
+              <span class="badge bg-secondary">{{ order.status }}</span>
+            </div>
+            <div class="mt-2">
+              <label class="form-label mb-1 small">Change Status:</label>
+              <select
+                class="form-select form-select-sm"
+                v-model="order.status"
+                @change="updateStatus(order, order.status)"
+              >
+                <option v-for="s in statuses" :key="s" :value="s">{{ s }}</option>
+              </select>
+            </div>
+          </div>
         </div>
+
       </div>
     </div>
 
@@ -89,23 +109,25 @@ import axios from "@/api";
 const activeTab = ref(0);
 
 const statuses = [
-  "Sales Order Being Prepared",
-  "Fully Prepared, Transferred to Loading Area",
+  "Sales Order is Being Prepared",
+  "Sales Order has been Fully Prepared and Transferred to the Loading Area",
   "Loading is Ongoing",
-  "Fully Loaded and Ready for Dispatch",
-  "Fully Loaded and Waiting for Dispatch",
+  "Fully Loaded",
+  "Waiting to be Dispatched",
   "Truck is Being Weighed",
   "Ready for Dispatch with no Discrepancy",
+  "Truck is Dispatched",
 ];
 
 const iconMap = {
-  "Sales Order Being Prepared": "clipboard-list",
-  "Fully Prepared, Transferred to Loading Area": "dolly",
+  "Sales Order is Being Prepared": "clipboard-list",
+  "Sales Order has been Fully Prepared and Transferred to the Loading Area": "dolly",
   "Loading is Ongoing": "truck-loading",
-  "Fully Loaded and Ready for Dispatch": "truck-front",
-  "Fully Loaded and Waiting for Dispatch": "clock",
+  "Fully Loaded": "truck-front",
+  "Waiting to be Dispatched": "clock",
   "Truck is Being Weighed": "weight",
-  "Ready for Dispatch with no Discrepancy": "truck-fast",
+  "Ready for Dispatch with no Discrepancy": "clipboard-check",
+  "Truck is Dispatched": "truck-fast",
 };
 
 const slugify = (text) =>
@@ -147,6 +169,27 @@ async function onDragEnd(event) {
   console.log("Updating order:", moved.id, "to status_id:", statusIndex);
   await axios.put(`/orders/${moved.id}`, { status_id: statusIndex });
 }
+
+async function updateStatus(order, newStatus) {
+  const oldStatus = Object.keys(orderMap).find((key) =>
+    orderMap[key].includes(order)
+  );
+
+  if (oldStatus && oldStatus !== newStatus) {
+    // Remove from old list
+    orderMap[oldStatus] = orderMap[oldStatus].filter((o) => o.id !== order.id);
+
+    // Add to new list
+    if (!orderMap[newStatus]) orderMap[newStatus] = [];
+    orderMap[newStatus].push(order);
+
+    // Update backend
+    const statusIndex = statuses.indexOf(newStatus) + 1;
+    console.log("Updating order:", order.id, "to status_id:", statusIndex);
+    await axios.put(`/orders/${order.id}`, { status_id: statusIndex });
+  }
+}
+
 
 onMounted(fetchOrders);
 </script>

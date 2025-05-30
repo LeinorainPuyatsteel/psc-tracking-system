@@ -21,9 +21,10 @@ import {
   faCheckCircle,
   faTruckFast,
   faTruckFront,
+  faClipboardCheck
 } from '@fortawesome/free-solid-svg-icons'
 
-library.add(faClipboardList, faDolly, faBoxOpen, faTruckLoading, faClock, faWeight, faCheckCircle, faTruckFast, faTruckFront)
+library.add(faClipboardList, faDolly, faBoxOpen, faTruckLoading, faClock, faWeight, faCheckCircle, faTruckFast, faTruckFront, faClipboardCheck)
 
 const app = createApp(App)
 
