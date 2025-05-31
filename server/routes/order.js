@@ -1,7 +1,7 @@
 // routes/orders.js
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const { SalesOrder, Status, Transaction } = require('../models');
+const { SalesOrder, Status, Transaction, Item, DeliveryReceipt } = require('../models');
 
 const router = express.Router();
 
@@ -64,6 +64,42 @@ router.put('/:id', auth, async (req, res) => {
 
   } catch (err) {
     console.error('Error updating order:', err);
+  }
+});
+
+router.get('/:id', auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const order = await SalesOrder.findByPk(id, {
+      include: [
+        { model: Status, as: 'status', attributes: ['status'] },
+        { model: Item },
+        {
+          model: DeliveryReceipt,
+          include: [
+            { model: Item },
+            {
+              model: Transaction,
+              include: { model: Status, as: 'status' }
+            }
+          ]
+        },
+        {
+          model: Transaction,
+          include: { model: Status, as: 'status' }
+        }
+      ]
+    });
+
+    if (!order) return res.status(404).json({ error: 'Not found' });
+
+    console.dir(order.toJSON(), { depth: null });
+
+    res.json(order);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 

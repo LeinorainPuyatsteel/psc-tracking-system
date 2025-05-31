@@ -25,24 +25,8 @@
         :id="slugify(status)"
         :key="status"
       >
-        <!-- <div v-if="orderMap[status]?.length">
-          <div
-            v-for="order in orderMap[status]"
-            :key="order.id"
-            class="card mb-2"
-          >
-            <div class="card-body">
-              Sales Order #{{ order.id }} - {{ order.customer }}<br />
-              <span class="badge bg-secondary">{{ order.status }}</span>
-            </div>
-          </div>
-        </div>
-        <div v-else class="text-muted text-center py-2">
-          No orders in this status
-        </div> -->
-
         <div v-for="order in orderMap[status]" :key="order.id" class="card mb-2">
-          <div class="card-body">
+          <div class="card-body" @click="$router.push(`/orders/${element.id}`)">
             <div>
               Sales Order #{{ order.id }} - {{ order.customer }}<br />
               <span class="badge bg-secondary">{{ order.status }}</span>
@@ -90,7 +74,7 @@
         >
           <template #item="{ element }">
             <div class="card mb-2 draggable-card">
-              <div class="card-body">
+              <div class="card-body" @click="$router.push(`/orders/${element.id}`)">
                 Sales Order #{{ element.id }} - {{ element.customer }}
               </div>
             </div>
