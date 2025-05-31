@@ -14,12 +14,15 @@ const DeliveryReceipt = sequelize.define('DeliveryReceipt', {
     type: DataTypes.INTEGER,
     defaultValue: 0,  
   },
-  item_name: DataTypes.STRING,
-  item_quantity: DataTypes.STRING,
-  item_mt: DataTypes.STRING,
-  item_length: DataTypes.STRING,
 }, {
   tableName: 'delivery_receipt',
 });
+
+DeliveryReceipt.associate = models => {
+    DeliveryReceipt.belongsTo(models.SalesOrder, { foreignKey: 'sales_order_id' });
+    DeliveryReceipt.hasMany(models.Transaction, { foreignKey: 'delivery_receipt_id' });
+    DeliveryReceipt.belongsTo(models.Status, { foreignKey: 'current_status_id', as: 'status' });
+    DeliveryReceipt.hasMany(models.Item, { foreignKey: 'delivery_receipt_id' });
+};
 
 module.exports = DeliveryReceipt;

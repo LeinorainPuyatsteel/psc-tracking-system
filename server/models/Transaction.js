@@ -21,4 +21,10 @@ const Transaction = sequelize.define('Transaction', {
   tableName: 'transaction',
 });
 
+Transaction.associate = models => {
+  Transaction.belongsTo(models.SalesOrder, { foreignKey: 'sales_order_id' });
+  Transaction.belongsTo(models.DeliveryReceipt, { foreignKey: 'delivery_receipt_id' });
+  Transaction.belongsTo(models.Status, { foreignKey: 'status_id', as: 'status' });
+};
+
 module.exports = Transaction;

@@ -4,13 +4,19 @@ const {
   SalesOrder,
   Transaction,
   Status,
-  User
+  User,
+  DeliveryReceipt,
+  Item
 } = require('./models');
+
+const getRandom = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const getRandomFloat = (min, max, decimals = 2) =>
+  parseFloat((Math.random() * (max - min) + min).toFixed(decimals));
 
 const seed = async () => {
   await sequelize.sync({ force: true });
 
-  // Seed user
+  // Create admin user
   const hashed = await bcrypt.hash('admin', 10);
   await User.create({
     username: 'admin',
@@ -18,7 +24,7 @@ const seed = async () => {
     user_type: 'admin'
   });
 
-  // Seed status
+  // Create statuses
   await Status.bulkCreate([
     { status: 'Sales Order is Being Prepared' },
     { status: 'Sales Order has been Fully Prepared and Transferred to the Loading Area' },
@@ -30,24 +36,70 @@ const seed = async () => {
     { status: 'Truck is Dispatched' }
   ]);
 
-  // Seed sales orders
-  const salesOrders = await SalesOrder.bulkCreate([
-    { customer: 'Alpha Corp', current_status_id: 1 },
-    { customer: 'Beta Inc', current_status_id: 1 },
-    { customer: 'Gamma Ltd', current_status_id: 1 },
-    { customer: 'Delta Co', current_status_id: 1 },
-    { customer: 'Epsilon Llc', current_status_id: 1 },
-    { customer: 'Zeta Traders', current_status_id: 1 },
-    { customer: 'Eta Services', current_status_id: 1 }
-  ], { returning: true });
+  const sampleCustomers = [
+    { name: 'Alpha Corp', address: '123 Alpha Street', contact: '1234567890' },
+    { name: 'Beta Inc', address: '456 Beta Avenue', contact: '2345678901' },
+    { name: 'Gamma Ltd', address: '789 Gamma Blvd', contact: '3456789012' },
+    { name: 'Delta Co', address: '101 Delta Drive', contact: '4567890123' },
+    { name: 'Epsilon LLC', address: '202 Epsilon Way', contact: '5678901234' },
+    { name: 'Zeta Traders', address: '303 Zeta Road', contact: '6789012345' },
+    { name: 'Eta Services', address: '404 Eta Lane', contact: '7890123456' }
+  ];
 
-  // Seed transactions using the correct auto-generated IDs
-  await Transaction.bulkCreate(salesOrders.map(order => ({
-    sales_order_id: order.id,
-    status_id: 1
-  })));
+  for (const customer of sampleCustomers) {
+    // Create sales order
+    const salesOrder = await SalesOrder.create({
+      customer_name: customer.name,
+      customer_address: customer.address,
+      customer_contact_number: customer.contact,
+      current_status_id: 1
+    });
 
-  console.log('✅ Seed complete: User, Status, Orders, and Transactions created');
+    // Create between 1–3 delivery receipts
+    const drCount = getRandom(1, 3);
+    const deliveryReceipts = await Promise.all(
+      Array.from({ length: drCount }).map(() =>
+        DeliveryReceipt.create({
+          sales_order_id: salesOrder.id,
+          current_status_id: 1
+        })
+      )
+    );
+
+    // Create 4–10 items
+    const itemCount = getRandom(4, 10);
+    const items = Array.from({ length: itemCount }).map((_, i) => ({
+      sales_order_id: salesOrder.id,
+      product_name: `Product ${i + 1}`,
+      quantity: getRandomFloat(1, 10),
+      thickness: getRandomFloat(0.5, 2),
+      width: getRandom(100, 300),
+      length: getRandom(100, 1000),
+      linear_meter: getRandomFloat(1, 50)
+    }));
+
+    // Distribute items across delivery receipts
+    const itemsPerDr = Math.ceil(itemCount / drCount);
+    let itemIndex = 0;
+
+    for (const dr of deliveryReceipts) {
+      const chunk = items.slice(itemIndex, itemIndex + itemsPerDr).map(item => ({
+        ...item,
+        delivery_receipt_id: dr.id
+      }));
+      await Item.bulkCreate(chunk);
+      itemIndex += itemsPerDr;
+
+      // Create transaction per delivery receipt
+      await Transaction.create({
+        sales_order_id: salesOrder.id,
+        delivery_receipt_id: dr.id,
+        status_id: 1
+      });
+    }
+  }
+
+  console.log('✅ Full seed complete: Users, Statuses, Sales Orders, DRs, Items, and Transactions.');
   process.exit();
 };
 

@@ -14,12 +14,15 @@ const SalesOrder = sequelize.define('SalesOrder', {
   customer_name: DataTypes.STRING,
   customer_address: DataTypes.STRING,
   customer_contact_number: DataTypes.STRING,
-  item_name: DataTypes.STRING,
-  item_quantity: DataTypes.STRING,
-  item_mt: DataTypes.STRING,
-  item_length: DataTypes.STRING,
 }, {
   tableName: 'sales_order',
 });
+
+SalesOrder.associate = models => {
+  SalesOrder.hasMany(models.DeliveryReceipt, { foreignKey: 'sales_order_id' });
+  SalesOrder.hasMany(models.Transaction, { foreignKey: 'sales_order_id' });
+  SalesOrder.hasMany(models.Item, { foreignKey: 'sales_order_id' });
+  SalesOrder.belongsTo(models.Status, { foreignKey: 'current_status_id', as: 'status' });
+};
 
 module.exports = SalesOrder;
