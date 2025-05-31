@@ -1,25 +1,25 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database');
 
-const SalesOrder = sequelize.define('SalesOrder', {
+const DeliveryReceipt = sequelize.define('DeliveryReceipt', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true 
   },
+  sales_order_id: {
+    type: DataTypes.INTEGER,
+  },
   current_status_id: {
     type: DataTypes.INTEGER,
     defaultValue: 0,  
   },
-  customer_name: DataTypes.STRING,
-  customer_address: DataTypes.STRING,
-  customer_contact_number: DataTypes.STRING,
   item_name: DataTypes.STRING,
   item_quantity: DataTypes.STRING,
   item_mt: DataTypes.STRING,
   item_length: DataTypes.STRING,
 }, {
-  tableName: 'sales_order',
+  tableName: 'delivery_receipt',
 });
 
-module.exports = SalesOrder;
+module.exports = DeliveryReceipt;

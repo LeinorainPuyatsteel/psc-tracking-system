@@ -10,6 +10,9 @@ const Transaction = sequelize.define('Transaction', {
   sales_order_id: {
     type: DataTypes.INTEGER,
   },
+  delivery_receipt_id: {
+    type: DataTypes.INTEGER,
+  },
   status_id: {
     type: DataTypes.INTEGER,
     defaultValue: 0,  
