@@ -17,11 +17,23 @@ const seed = async () => {
   await sequelize.sync({ force: true });
 
   // Create admin user
-  const hashed = await bcrypt.hash('admin', 10);
+  const hashed = await bcrypt.hash('password', 10);
   await User.create({
     username: 'admin',
     password: hashed,
-    user_type: 'admin'
+    role: 'admin'
+  });
+
+  await User.create({
+    username: 'clet',
+    password: hashed,
+    role: 'clet'
+  });
+
+  await User.create({
+    username: 'girlie',
+    password: hashed,
+    role: 'girlie'
   });
 
   // Create statuses

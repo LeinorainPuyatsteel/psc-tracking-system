@@ -47,7 +47,7 @@ router.put('/:id', auth, async (req, res) => {
     const { id } = req.params;
     const { status_id } = req.body;
 
-    const currentOrder = await Order.findByPk(req.params.id);
+    const currentOrder = await SalesOrder.findByPk(req.params.id);
     if (req.body.status_id < currentOrder.status_id) {
       return res.status(400).json({ message: "Cannot move to an earlier status." });
     }

@@ -15,6 +15,13 @@ export default defineConfig({
     },
   },
   server: {
+    proxy: {
+      '/api': {
+        target: 'http://192.168.0.210:5000', // or http://192.168.0.210:5000 if accessed from mobile
+        changeOrigin: true,
+        secure: false,
+      },
+    },
     host: true,
     port: 5173, // You can specify a port or use the default
   },

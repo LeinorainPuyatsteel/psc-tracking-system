@@ -1,100 +1,96 @@
 <template>
-  <div class="container-fluid py-4">
-    <h4 class="mb-4">PSC Tracking System</h4>
-    <h3 class="mb-3 text-center">PSC Login</h3>
-    <!-- Mobile Tabs -->
-    <ul class="nav nav-tabs d-md-none mb-3" id="orderTabs">
-      <li class="nav-item" v-for="(status, index) in statuses" :key="status">
-        <button
-          class="nav-link"
-          :class="{ active: index === activeTab }"
-          type="button"
-          @click="activeTab = index"
-        >
-          <font-awesome-icon :icon="iconMap[status]" class="me-2" />
-          {{ status }}
-        </button>
-      </li>
-    </ul>
+  <div class="dashboard-wrapper d-flex justify-content-center align-items-start py-5">
+    <div class="container-fluid py-4">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">PSC Tracking System</h4>
+        <button @click="handleLogout" class="logout-button">Logout</button>
+      </div>
 
-    <div class="tab-content d-md-none" id="tabContentMobile">
-      <div
-        class="tab-pane fade"
-        :class="{ 'show active': index === activeTab }"
-        v-for="(status, index) in statuses"
-        :id="slugify(status)"
-        :key="status"
-      >
-        <div v-for="order in orderMap[status]" :key="order.id" class="card mb-2">
-          <div class="card-body" @click="$router.push(`/orders/${order.id}`)">
-            <div>
-              Sales Order #{{ order.id }} - {{ order.customer_name }}<br />
-              <span class="badge bg-secondary">{{ order.status }}</span>
-            </div>
-            <div class="mt-2">
-              <label class="form-label mb-1 small">Change Status:</label>
-              <!-- <select
-                class="form-select form-select-sm"
-                v-model="order.status"
-                @change="updateStatus(order, order.status)"
-                @click.stop
-              >
-                <option v-for="s in statuses" :key="s" :value="s">{{ s }}</option>
-              </select> -->
-              <select
-                class="form-select form-select-sm"
-                v-model="order.status"
-                @change="updateStatus(order, order.status)"
-                @click.stop
-              >
-                <option
-                  v-for="s in statuses.slice(statuses.indexOf(order.status))"
-                  :key="s"
-                  :value="s"
+      <!-- <h3 class="mb-4 text-center">Pipeline</h3> -->
+
+      <!-- Mobile Tabs -->
+      <ul class="nav nav-tabs flex-column d-md-none mb-3" id="orderTabs">
+        <li class="nav-item mb-2" v-for="(status, index) in statuses" :key="status">
+          <button
+            class="nav-link w-100 text-start"
+            :class="{ active: index === activeTab }"
+            type="button"
+            @click="activeTab = index"
+          >
+            <font-awesome-icon :icon="iconMap[status]" class="me-2" />
+            {{ status }}
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content d-md-none" id="tabContentMobile">
+        <div
+          class="tab-pane fade"
+          :class="{ 'show active': index === activeTab }"
+          v-for="(status, index) in statuses"
+          :id="slugify(status)"
+          :key="status"
+        >
+          <div v-for="order in orderMap[status]" :key="order.id" class="card mb-3">
+            <div class="card-body" @click="$router.push(`/orders/${order.id}`)">
+              <div>
+                <strong>Sales Order #{{ order.id }}</strong> - {{ order.customer_name }}<br />
+                <span class="badge bg-info text-dark mt-1">{{ order.status }}</span>
+              </div>
+              <div class="mt-2" v-if="userStore.user?.role !== 'clet'">
+                <label class="form-label mb-1 small">Change Status:</label>
+                <select
+                  class="form-select form-select-sm"
+                  v-model="order.status"
+                  @change="updateStatus(order, order.status)"
+                  @click.stop
                 >
-                  {{ s }}
-                </option>
-              </select>
+                  <option
+                    v-for="s in statuses.slice(statuses.indexOf(order.status))"
+                    :key="s"
+                    :value="s"
+                  >
+                    {{ s }}
+                  </option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
-
       </div>
-    </div>
 
-    <!-- Desktop Kanban -->
-    <div class="kanban-board d-none d-md-flex gap-3">
-      <div
-        class="kanban-column flex-grow-1"
-        v-for="status in statuses"
-        :key="status"
-      >
-        <h6>
-          <font-awesome-icon :icon="iconMap[status]" class="me-2" />
-          {{ status }}
-        </h6>
+      <!-- Desktop Kanban -->
+      <div class="kanban-board d-none d-md-flex gap-4">
         <div
-          v-if="orderMap[status]?.length === 0"
-          class="text-muted small mt-2 text-center"
+          class="kanban-column flex-grow-1"
+          v-for="status in statuses"
+          :key="status"
         >
-          No Sales Order for this stage.
-        </div>
-        <draggable
-          :list="orderMap[status]"
-          :group="'orders'"
-          class="sortable-area"
-          item-key="id"
-          @end="onDragEnd"
-          :data-status="status"
-        >
-          <template #item="{ element: order }">
-            <div class="card mb-2 draggable-card">
-              <div class="card-body" @click="$router.push(`/orders/${order.id}`)">
-                Sales Order #{{ order.id }} - {{ order.customer_name }}
+          <h6 class="text-white">
+            <font-awesome-icon :icon="iconMap[status]" class="me-2" />
+            {{ status }}
+          </h6>
+          <div v-if="orderMap[status]?.length === 0" class="text-light small mt-2 text-center">
+            No Sales Order for this stage.
+          </div>
+          <draggable
+            :list="orderMap[status]"
+            :group="'orders'"
+            class="sortable-area"
+            item-key="id"
+            @end="onDragEnd"
+            :data-status="status"
+            :disabled="userStore.user?.role === 'clet'"
+          >
+            <template #item="{ element: order }">
+              <div class="card mb-3 draggable-card">
+                <div class="card-body" @click="$router.push(`/orders/${order.id}`)">
+                  <strong>Sales Order #{{ order.id }}</strong> - {{ order.customer_name }}
+                </div>
               </div>
-            </div>
-          </template>
-        </draggable>
+            </template>
+          </draggable>
+        </div>
       </div>
     </div>
   </div>
@@ -104,7 +100,11 @@
 import { onMounted, reactive, ref } from "vue";
 import draggable from "vuedraggable";
 import axios from "@/api";
+import { useRouter } from "vue-router";
+import { useUserStore } from "@/stores/user";
 
+const userStore = useUserStore();
+const router = useRouter();
 const activeTab = ref(0);
 
 const statuses = [
@@ -130,15 +130,10 @@ const iconMap = {
 };
 
 const slugify = (text) =>
-  text
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w-]+/g, "");
+  text.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]+/g, "");
 
 const orderMap = reactive({});
 
-// Initialize empty arrays for each status
 function resetOrderMap() {
   statuses.forEach((status) => {
     orderMap[status] = [];
@@ -148,26 +143,11 @@ function resetOrderMap() {
 async function fetchOrders() {
   const res = await axios.get("/orders");
   resetOrderMap();
-
   res.data.forEach((order) => {
-    if (!orderMap[order.status]) {
-      orderMap[order.status] = [];
-    }
+    if (!orderMap[order.status]) orderMap[order.status] = [];
     orderMap[order.status].push(order);
   });
 }
-
-// async function onDragEnd(event) {
-//   const moved = event.item.__draggable_context?.element;
-//   const newStatus = event.to?.dataset?.status;
-//   if (!moved || !newStatus) return;
-
-//   moved.status = newStatus;
-//   const statusIndex = statuses.indexOf(newStatus) + 1;
-
-//   console.log("Updating order:", moved.id, "to status_id:", statusIndex);
-//   await axios.put(`/orders/${moved.id}`, { status_id: statusIndex });
-// }
 
 async function onDragEnd(event) {
   const moved = event.item.__draggable_context?.element;
@@ -179,65 +159,122 @@ async function onDragEnd(event) {
 
   if (newIndex < oldIndex) {
     alert("Cannot move to an earlier stage.");
-    await fetchOrders(); // Re-render to fix visual position
+    await fetchOrders();
     return;
   }
 
   moved.status = newStatus;
   const statusIndex = statuses.indexOf(newStatus) + 1;
-
-  console.log("Updating order:", moved.id, "to status_id:", statusIndex);
   await axios.put(`/orders/${moved.id}`, { status_id: statusIndex });
 }
 
-// async function updateStatus(order, newStatus) {
-//   const oldStatus = Object.keys(orderMap).find((key) =>
-//     orderMap[key].includes(order)
-//   );
-
-//   if (oldStatus && oldStatus !== newStatus) {
-//     // Remove from old list
-//     orderMap[oldStatus] = orderMap[oldStatus].filter((o) => o.id !== order.id);
-
-//     // Add to new list
-//     if (!orderMap[newStatus]) orderMap[newStatus] = [];
-//     orderMap[newStatus].push(order);
-
-//     // Update backend
-//     const statusIndex = statuses.indexOf(newStatus) + 1;
-//     console.log("Updating order:", order.id, "to status_id:", statusIndex);
-//     await axios.put(`/orders/${order.id}`, { status_id: statusIndex });
-//   }
-// }
-
 async function updateStatus(order, newStatus) {
-  const oldStatus = Object.keys(orderMap).find((key) =>
-    orderMap[key].includes(order)
-  );
-
+  const oldStatus = Object.keys(orderMap).find((key) => orderMap[key].includes(order));
   const oldIndex = statuses.indexOf(oldStatus);
   const newIndex = statuses.indexOf(newStatus);
 
   if (newIndex < oldIndex) {
     alert("You cannot move the order to an earlier stage.");
-    order.status = oldStatus; // Reset dropdown to previous value
+    order.status = oldStatus;
     return;
   }
 
   if (oldStatus && oldStatus !== newStatus) {
-    // Remove from old list
     orderMap[oldStatus] = orderMap[oldStatus].filter((o) => o.id !== order.id);
-
-    // Add to new list
     if (!orderMap[newStatus]) orderMap[newStatus] = [];
     orderMap[newStatus].push(order);
-
-    // Update backend
     const statusIndex = statuses.indexOf(newStatus) + 1;
-    console.log("Updating order:", order.id, "to status_id:", statusIndex);
     await axios.put(`/orders/${order.id}`, { status_id: statusIndex });
   }
 }
 
+function handleLogout() {
+  userStore.logout();
+  router.push("/login");
+}
+
 onMounted(fetchOrders);
 </script>
+
+<style scoped>
+body {
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  min-height: 100vh;
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  color: white;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.85); /* Light glass background */
+  backdrop-filter: blur(8px);
+  border: none;
+  border-radius: 1rem;
+  box-shadow: 0 0 15px rgba(0, 123, 255, 0.2);
+}
+
+.text-dark {
+  color: #212529 !important;
+}
+
+.dashboard-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+}
+
+.container-fluid {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.25);
+  color: white;
+  max-width: 1400px;
+  width: 100%;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 1rem;
+  color: white;
+}
+
+.card-body {
+  cursor: pointer;
+}
+
+.logout-button {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 0.5rem;
+  color: white;
+  transition: background 0.3s;
+}
+
+.logout-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.kanban-board {
+  overflow-x: auto;
+  padding-bottom: 1rem;
+}
+
+.sortable-area {
+  min-height: 150px;
+}
+
+.kanban-column h6 {
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  /* border-radius: 1rem; */
+}
+
+.kanban-column {
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.438);
+  border-radius: 1rem;
+}
+
+</style>

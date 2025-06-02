@@ -1,0 +1,19 @@
+{
+  "id": 123,
+  "customer_name": "John Doe",
+  "customer_address": "123 Sample Street",
+  "customer_contact_number": "09123456789",
+  "status": { "id": 1, "status": "Pending" },
+  "Items": [
+    {
+      "id": 1,
+      "product_name": "Plywood",
+      "quantity": 10,
+      "thickness": 12,
+      "width": 1200,
+      "length": 2400
+    }
+  ],
+  "DeliveryReceipts": [],
+  "Transactions": []
+}
