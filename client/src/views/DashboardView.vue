@@ -5,6 +5,9 @@
         <h4 class="mb-0">PSC Tracking System</h4>
         <button @click="handleLogout" class="logout-button">Logout</button>
       </div>
+      <button class="btn btn-success mb-3" @click="loadSO">
+        Load SO
+      </button>
 
       <!-- <h3 class="mb-4 text-center">Pipeline</h3> -->
 
@@ -191,6 +194,20 @@ async function updateStatus(order, newStatus) {
 function handleLogout() {
   userStore.logout();
   router.push("/login");
+}
+
+async function loadSO() {
+  try {
+    const res = await axios.get("/mock_so.json");
+    const mockSO = res.data;
+
+    await axios.post("/orders", mockSO);
+
+    alert("Mock SO loaded and sent to backend!");
+  } catch (err) {
+    console.error("Failed to load mock SO:", err);
+    alert("Failed to load mock SO.");
+  }
 }
 
 onMounted(fetchOrders);
