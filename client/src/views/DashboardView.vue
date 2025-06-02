@@ -28,18 +28,32 @@
         <div v-for="order in orderMap[status]" :key="order.id" class="card mb-2">
           <div class="card-body" @click="$router.push(`/orders/${order.id}`)">
             <div>
-              Sales Order #{{ order.id }} - {{ order.customer }}<br />
+              Sales Order #{{ order.id }} - {{ order.customer_name }}<br />
               <span class="badge bg-secondary">{{ order.status }}</span>
             </div>
             <div class="mt-2">
               <label class="form-label mb-1 small">Change Status:</label>
-              <select
+              <!-- <select
                 class="form-select form-select-sm"
                 v-model="order.status"
                 @change="updateStatus(order, order.status)"
                 @click.stop
               >
                 <option v-for="s in statuses" :key="s" :value="s">{{ s }}</option>
+              </select> -->
+              <select
+                class="form-select form-select-sm"
+                v-model="order.status"
+                @change="updateStatus(order, order.status)"
+                @click.stop
+              >
+                <option
+                  v-for="s in statuses.slice(statuses.indexOf(order.status))"
+                  :key="s"
+                  :value="s"
+                >
+                  {{ s }}
+                </option>
               </select>
             </div>
           </div>
@@ -76,7 +90,7 @@
           <template #item="{ element: order }">
             <div class="card mb-2 draggable-card">
               <div class="card-body" @click="$router.push(`/orders/${order.id}`)">
-                Sales Order #{{ order.id }} - {{ order.customer }}
+                Sales Order #{{ order.id }} - {{ order.customer_name }}
               </div>
             </div>
           </template>
@@ -143,10 +157,31 @@ async function fetchOrders() {
   });
 }
 
+// async function onDragEnd(event) {
+//   const moved = event.item.__draggable_context?.element;
+//   const newStatus = event.to?.dataset?.status;
+//   if (!moved || !newStatus) return;
+
+//   moved.status = newStatus;
+//   const statusIndex = statuses.indexOf(newStatus) + 1;
+
+//   console.log("Updating order:", moved.id, "to status_id:", statusIndex);
+//   await axios.put(`/orders/${moved.id}`, { status_id: statusIndex });
+// }
+
 async function onDragEnd(event) {
   const moved = event.item.__draggable_context?.element;
   const newStatus = event.to?.dataset?.status;
   if (!moved || !newStatus) return;
+
+  const oldIndex = statuses.indexOf(moved.status);
+  const newIndex = statuses.indexOf(newStatus);
+
+  if (newIndex < oldIndex) {
+    alert("Cannot move to an earlier stage.");
+    await fetchOrders(); // Re-render to fix visual position
+    return;
+  }
 
   moved.status = newStatus;
   const statusIndex = statuses.indexOf(newStatus) + 1;
@@ -155,10 +190,39 @@ async function onDragEnd(event) {
   await axios.put(`/orders/${moved.id}`, { status_id: statusIndex });
 }
 
+// async function updateStatus(order, newStatus) {
+//   const oldStatus = Object.keys(orderMap).find((key) =>
+//     orderMap[key].includes(order)
+//   );
+
+//   if (oldStatus && oldStatus !== newStatus) {
+//     // Remove from old list
+//     orderMap[oldStatus] = orderMap[oldStatus].filter((o) => o.id !== order.id);
+
+//     // Add to new list
+//     if (!orderMap[newStatus]) orderMap[newStatus] = [];
+//     orderMap[newStatus].push(order);
+
+//     // Update backend
+//     const statusIndex = statuses.indexOf(newStatus) + 1;
+//     console.log("Updating order:", order.id, "to status_id:", statusIndex);
+//     await axios.put(`/orders/${order.id}`, { status_id: statusIndex });
+//   }
+// }
+
 async function updateStatus(order, newStatus) {
   const oldStatus = Object.keys(orderMap).find((key) =>
     orderMap[key].includes(order)
   );
+
+  const oldIndex = statuses.indexOf(oldStatus);
+  const newIndex = statuses.indexOf(newStatus);
+
+  if (newIndex < oldIndex) {
+    alert("You cannot move the order to an earlier stage.");
+    order.status = oldStatus; // Reset dropdown to previous value
+    return;
+  }
 
   if (oldStatus && oldStatus !== newStatus) {
     // Remove from old list
@@ -174,7 +238,6 @@ async function updateStatus(order, newStatus) {
     await axios.put(`/orders/${order.id}`, { status_id: statusIndex });
   }
 }
-
 
 onMounted(fetchOrders);
 </script>

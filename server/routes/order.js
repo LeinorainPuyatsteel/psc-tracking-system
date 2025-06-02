@@ -30,7 +30,7 @@ router.get('/', auth, async (req, res) => {
 
     const result = salesOrders.map(order => ({
       id: order.id,
-      customer: order.customer,
+      customer_name: order.customer_name,
       status: order.status?.status,
     }));
 
@@ -46,6 +46,11 @@ router.put('/:id', auth, async (req, res) => {
   try {
     const { id } = req.params;
     const { status_id } = req.body;
+
+    const currentOrder = await Order.findByPk(req.params.id);
+    if (req.body.status_id < currentOrder.status_id) {
+      return res.status(400).json({ message: "Cannot move to an earlier status." });
+    }
 
     // Update the Sales Order status
     const order = await SalesOrder.findByPk(id);
