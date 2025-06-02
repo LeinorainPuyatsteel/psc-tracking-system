@@ -26,7 +26,7 @@
         :key="status"
       >
         <div v-for="order in orderMap[status]" :key="order.id" class="card mb-2">
-          <div class="card-body" @click="$router.push(`/orders/${element.id}`)">
+          <div class="card-body" @click="$router.push(`/orders/${order.id}`)">
             <div>
               Sales Order #{{ order.id }} - {{ order.customer }}<br />
               <span class="badge bg-secondary">{{ order.status }}</span>
@@ -37,6 +37,7 @@
                 class="form-select form-select-sm"
                 v-model="order.status"
                 @change="updateStatus(order, order.status)"
+                @click.stop
               >
                 <option v-for="s in statuses" :key="s" :value="s">{{ s }}</option>
               </select>
@@ -72,10 +73,10 @@
           @end="onDragEnd"
           :data-status="status"
         >
-          <template #item="{ element }">
+          <template #item="{ element: order }">
             <div class="card mb-2 draggable-card">
-              <div class="card-body" @click="$router.push(`/orders/${element.id}`)">
-                Sales Order #{{ element.id }} - {{ element.customer }}
+              <div class="card-body" @click="$router.push(`/orders/${order.id}`)">
+                Sales Order #{{ order.id }} - {{ order.customer }}
               </div>
             </div>
           </template>

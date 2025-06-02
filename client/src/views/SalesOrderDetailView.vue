@@ -72,7 +72,7 @@
               </li>
             </ul>
 
-            <h6>Transactions</h6>
+            <!-- <h6>Transactions</h6>
             <ul class="list-group">
               <li
                 class="list-group-item"
@@ -81,7 +81,7 @@
               >
                 {{ tx.status?.status }} — {{ new Date(tx.createdAt).toLocaleString() }}
               </li>
-            </ul>
+            </ul> -->
           </div>
         </div>
       </div>
