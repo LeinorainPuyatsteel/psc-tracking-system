@@ -25,8 +25,7 @@
     "Transactions": [
       {
         "id": 80001,
-        "sales_order_id": 70001,
-        "action": "Created"
+        "sales_order_id": 70001
       }
     ]
   },
@@ -55,9 +54,8 @@
     ],
     "Transactions": [
       {
-        "id": 80002,
-        "sales_order_id": 70002,
-        "action": "Created"
+        "id": 80102,
+        "sales_order_id": 70002
       }
     ]
   },
@@ -86,9 +84,8 @@
     ],
     "Transactions": [
       {
-        "id": 80003,
-        "sales_order_id": 70003,
-        "action": "Created"
+        "id": 80203,
+        "sales_order_id": 70003
       }
     ]
   },
@@ -117,9 +114,8 @@
     ],
     "Transactions": [
       {
-        "id": 80004,
-        "sales_order_id": 70004,
-        "action": "Created"
+        "id": 80304,
+        "sales_order_id": 70004
       }
     ]
   },
@@ -148,9 +144,8 @@
     ],
     "Transactions": [
       {
-        "id": 80005,
-        "sales_order_id": 70005,
-        "action": "Created"
+        "id": 80405,
+        "sales_order_id": 70005
       }
     ]
   }

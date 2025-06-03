@@ -2,6 +2,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const { SalesOrder, Status, Transaction, Item, DeliveryReceipt } = require('../models');
+const { UniqueConstraintError } = require('sequelize');
 
 const router = express.Router();
 
@@ -76,7 +77,19 @@ router.post('/', async (req, res) => {
 
   } catch (err) {
 
-    console.error('Order create failed:', err.errors || err.message);
+    if (err instanceof UniqueConstraintError) {
+      return res.status(400).json({
+        error: 'Duplicate entry detected',
+        details: err.errors.map((e) => `${e.path}: ${e.message}`),
+      });
+    } else {
+      console.error('❌ Order create failed:', err);
+
+      return res.status(500).json({
+        error: 'Server error',
+        details: err.message,
+      });
+    }
   
   }
 });

@@ -232,8 +232,12 @@ const searchAndAddSO = async () => {
     console.log('✅ Sales Order added:', saveRes.data)
     alert('Sales Order added successfully!')
   } catch (err) {
-    console.error('❌ Failed to add Sales Order:', err)
-    alert('Failed to add Sales Order.')
+    if (err.response && err.response.status === 400 && err.response.data?.error === 'Duplicate entry detected') {
+      alert(`❌ Cannot add: Sales Order #${soNumber.value} already exists.`);
+    } else {
+      console.error('❌ Order create failed:', err);
+      alert('Something went wrong while adding the order.');
+    }
   }
 }
 
