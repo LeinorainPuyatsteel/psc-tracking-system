@@ -4,6 +4,10 @@ const jwt = require('jsonwebtoken');
 const { SalesOrder, Status, Transaction, Item, DeliveryReceipt } = require('../models');
 const { UniqueConstraintError } = require('sequelize');
 
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
 const router = express.Router();
 
 // JWT Auth Middleware
@@ -91,6 +95,51 @@ router.post('/', async (req, res) => {
       });
     }
   
+  }
+});
+
+
+// Ensure upload directory exists
+const uploadDir = path.join(__dirname, '../uploads/transactions');
+fs.mkdirSync(uploadDir, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: uploadDir,
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
+});
+
+const upload = multer({ storage });
+
+// PUT with image upload
+router.put('/:id/update-status', auth, upload.single('image'), async (req, res) => {
+  try {
+    const { status_id } = req.body;
+    const { id } = req.params;
+    const image_url = req.file ? `/uploads/transactions/${req.file.filename}` : null;
+
+    const order = await SalesOrder.findByPk(id);
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    if (status_id < order.current_status_id) {
+      return res.status(400).json({ message: 'Cannot move to an earlier status.' });
+    }
+
+    order.current_status_id = status_id;
+    await order.save();
+
+    const tx = await Transaction.create({
+      sales_order_id: id,
+      status_id,
+      image_url,
+    });
+
+    res.json({ message: 'Status updated and image uploaded', transaction: tx });
+
+  } catch (err) {
+    console.error('Update with image error:', err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 

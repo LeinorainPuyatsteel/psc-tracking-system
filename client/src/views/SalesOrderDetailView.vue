@@ -49,8 +49,15 @@
 
     <h5>Transaction Logs</h5>
     <ul class="list-group">
-      <li class="list-group-item" v-for="tx in order.Transactions" :key="tx.id">
+      <li
+        class="list-group-item"
+        v-for="tx in order.Transactions"
+        :key="tx.id"
+        @click="openTransactionModal(tx)"
+        role="button"
+      >
         {{ tx.status?.status }} — {{ new Date(tx.createdAt).toLocaleString() }}
+        <span v-if="tx.image_url" class="ms-2 badge bg-light text-dark">📷</span>
       </li>
     </ul>
 
@@ -107,6 +114,39 @@
         </div>
       </div>
     </div>
+    <div
+      class="modal fade"
+      id="transactionModal"
+      tabindex="-1"
+      aria-labelledby="transactionModalLabel"
+      aria-hidden="true"
+      ref="transactionModalRef"
+    >
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              Transaction Image — {{ selectedTransaction?.status?.status }}
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body text-center">
+            <img
+              v-if="selectedTransaction?.image_url"
+              :src="`http://192.168.0.210:5000${selectedTransaction.image_url}`"
+              alt="Transaction Image"
+              class="img-fluid rounded shadow"
+            />
+            <p v-else>No image attached to this transaction.</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -116,6 +156,10 @@ import { useRoute } from "vue-router";
 import axios from "@/api";
 import { Modal } from "bootstrap";
 import { useUserStore } from "@/stores/user";
+
+const selectedTransaction = ref(null);
+const transactionModalRef = ref();
+let transactionModalInstance = null;
 
 const route = useRoute();
 const userStore = useUserStore();
@@ -158,6 +202,18 @@ const smsMessage = computed(() => {
   if (!order.value.id || !order.value.status) return "";
   return `${greeting.value} ${order.value.customer_name}, your Sales Order #${order.value.id} is currently: "${order.value.status.status}". This status was updated on ${statusTimestamp.value}. Thank you.`;
 });
+
+function openTransactionModal(tx) {
+  if (!tx.image_url) return; // Optional: skip if there's no image
+
+  selectedTransaction.value = tx;
+
+  if (!transactionModalInstance) {
+    transactionModalInstance = new Modal(transactionModalRef.value);
+  }
+
+  transactionModalInstance.show();
+}
 
 console.log("User role:", userStore.user?.role);
 </script>

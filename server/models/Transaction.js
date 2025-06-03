@@ -16,6 +16,10 @@ const Transaction = sequelize.define('Transaction', {
   status_id: {
     type: DataTypes.INTEGER,
     defaultValue: 0,  
+  },
+  image_url: {
+  type: DataTypes.STRING,
+  allowNull: true,
   }
 }, {
   tableName: 'transaction',

@@ -195,13 +195,38 @@ async function updateStatus(order, newStatus) {
     return;
   }
 
-  if (oldStatus && oldStatus !== newStatus) {
-    orderMap[oldStatus] = orderMap[oldStatus].filter((o) => o.id !== order.id);
-    if (!orderMap[newStatus]) orderMap[newStatus] = [];
-    orderMap[newStatus].push(order);
-    const statusIndex = statuses.indexOf(newStatus) + 1;
-    await axios.put(`/orders/${order.id}`, { status_id: statusIndex });
+  const file = await promptForImage();
+  if (!file) {
+    alert("Image upload canceled. Status not updated.");
+    order.status = oldStatus;
+    return;
   }
+
+  const formData = new FormData();
+  formData.append("status_id", newIndex + 1);
+  formData.append("image", file);
+
+  try {
+    await axios.put(`/orders/${order.id}/update-status`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    orderMap[oldStatus] = orderMap[oldStatus].filter(o => o.id !== order.id);
+    orderMap[newStatus].push(order);
+
+  } catch (err) {
+    console.error("Error updating status:", err);
+    alert("Failed to update status.");
+    order.status = oldStatus;
+  }
+
+  // if (oldStatus && oldStatus !== newStatus) {
+  //   orderMap[oldStatus] = orderMap[oldStatus].filter((o) => o.id !== order.id);
+  //   if (!orderMap[newStatus]) orderMap[newStatus] = [];
+  //   orderMap[newStatus].push(order);
+  //   const statusIndex = statuses.indexOf(newStatus) + 1;
+  //   await axios.put(`/orders/${order.id}`, { status_id: statusIndex });
+  // }
 }
 
 function handleLogout() {
@@ -239,6 +264,16 @@ const searchAndAddSO = async () => {
       alert('Something went wrong while adding the order.');
     }
   }
+}
+
+async function promptForImage() {
+  return new Promise((resolve) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = () => resolve(input.files[0]);
+    input.click();
+  });
 }
 
 onMounted(fetchOrders);

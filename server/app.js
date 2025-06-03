@@ -3,6 +3,7 @@ const cors = require('cors');
 const sequelize = require('./database');
 const authRoutes = require('./routes/auth');
 const orderRoutes = require('./routes/order');
+const path = require('path');
 
 require('dotenv').config();
 
@@ -14,6 +15,8 @@ app.use(express.static('public'));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 sequelize.sync().then(() => {
   console.log('JWT_SECRET:', process.env.JWT_SECRET)
