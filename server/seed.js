@@ -68,7 +68,7 @@ const seed = async () => {
     });
 
     // Create between 1–3 delivery receipts
-    const drCount = getRandom(1, 3);
+    const drCount = getRandom(1, 1);
     const deliveryReceipts = await Promise.all(
       Array.from({ length: drCount }).map(() =>
         DeliveryReceipt.create({

@@ -42,31 +42,44 @@ router.get('/', auth, async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
+  
   try {
     const data = req.body;
 
-    // Normalize status
-    const status = await Status.findByPk(data.status.id);
-    if (!status) {
-      return res.status(400).json({ error: 'Invalid status ID' });
+    data.current_status_id = 1;
+
+    if (data.DeliveryReceipts && Array.isArray(data.DeliveryReceipts)) {
+      data.DeliveryReceipts.forEach(dr => {
+        dr.current_status_id = 1;
+      });
     }
 
-    // Convert to valid FK field for DB
-    data.current_status_id = status.id;
-    delete data.status; // Optional: remove nested object if your model doesn't expect it
+    if (data.Transactions && Array.isArray(data.Transactions)) {
+      data.Transactions.forEach(tx => {
+        tx.status_id = 1;
+      });
+    }
 
     const order = await SalesOrder.create(data, {
-      include: [Item, DeliveryReceipt, Transaction], // if needed
+      include: [
+        {
+          model: DeliveryReceipt,
+          include: [Item],
+        },
+        Transaction,
+      ],
     });
 
+    console.log('Incoming order data:', data);
+
     res.json({ message: 'Order saved', order });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error', details: err.message });
+
+    console.error('Order create failed:', err.errors || err.message);
+  
   }
 });
-
-
 
 // PUT /orders/:id - update an order's status
 router.put('/:id', auth, async (req, res) => {
@@ -114,6 +127,11 @@ router.get('/:id', auth, async (req, res) => {
             {
               model: Transaction,
               include: { model: Status, as: 'status' }
+            },
+            {
+              model: Status,
+              as: 'status',
+              attributes: ['status']
             }
           ]
         },

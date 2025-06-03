@@ -1,19 +1,157 @@
-{
-  "id": 1234,
-  "customer_name": "John Doe",
-  "customer_address": "123 Sample Street",
-  "customer_contact_number": "09123456789",
-  "status": { "id": 1, "status": "Pending" },
-  "Items": [
-    {
-      "id": 1444,
-      "product_name": "Plywood",
-      "quantity": 10,
-      "thickness": 12,
-      "width": 1200,
-      "length": 2400
-    }
-  ],
-  "DeliveryReceipts": [],
-  "Transactions": []
-}
+[
+  {
+    "id": 70001,
+    "customer_name": "Juan Dela Cruz",
+    "contact_number": "09171234567",
+    "contact_address": "123 Makati City",
+    "DeliveryReceipts": [
+      {
+        "id": 40001,
+        "sales_order_id": 70001,
+        "dr_number": 50001,
+        "Items": [
+          {
+            "id": 60001,
+            "sales_order_id": 70001,
+            "product_name": "Plywood",
+            "quantity": 10,
+            "thickness": 12,
+            "width": 1200,
+            "length": 2400
+          }
+        ]
+      }
+    ],
+    "Transactions": [
+      {
+        "id": 80001,
+        "sales_order_id": 70001,
+        "action": "Created"
+      }
+    ]
+  },
+  {
+    "id": 70002,
+    "customer_name": "Maria Clara",
+    "contact_number": "09181234567",
+    "contact_address": "456 Quezon City",
+    "DeliveryReceipts": [
+      {
+        "id": 40002,
+        "sales_order_id": 70002,
+        "dr_number": 50002,
+        "Items": [
+          {
+            "id": 60002,
+            "sales_order_id": 70002,
+            "product_name": "Hardiflex",
+            "quantity": 15,
+            "thickness": 6,
+            "width": 1200,
+            "length": 2400
+          }
+        ]
+      }
+    ],
+    "Transactions": [
+      {
+        "id": 80002,
+        "sales_order_id": 70002,
+        "action": "Created"
+      }
+    ]
+  },
+  {
+    "id": 70003,
+    "customer_name": "Andres Bonifacio",
+    "contact_number": "09201234567",
+    "contact_address": "789 Manila",
+    "DeliveryReceipts": [
+      {
+        "id": 40003,
+        "sales_order_id": 70003,
+        "dr_number": 50003,
+        "Items": [
+          {
+            "id": 60003,
+            "sales_order_id": 70003,
+            "product_name": "Cement Board",
+            "quantity": 20,
+            "thickness": 8,
+            "width": 1200,
+            "length": 2400
+          }
+        ]
+      }
+    ],
+    "Transactions": [
+      {
+        "id": 80003,
+        "sales_order_id": 70003,
+        "action": "Created"
+      }
+    ]
+  },
+  {
+    "id": 70004,
+    "customer_name": "Gregoria de Jesus",
+    "contact_number": "09391234567",
+    "contact_address": "Caloocan City",
+    "DeliveryReceipts": [
+      {
+        "id": 40004,
+        "sales_order_id": 70004,
+        "dr_number": 50004,
+        "Items": [
+          {
+            "id": 60004,
+            "sales_order_id": 70004,
+            "product_name": "Marine Plywood",
+            "quantity": 8,
+            "thickness": 18,
+            "width": 1200,
+            "length": 2400
+          }
+        ]
+      }
+    ],
+    "Transactions": [
+      {
+        "id": 80004,
+        "sales_order_id": 70004,
+        "action": "Created"
+      }
+    ]
+  },
+  {
+    "id": 70005,
+    "customer_name": "Diego Silang",
+    "contact_number": "09181230987",
+    "contact_address": "Baguio City",
+    "DeliveryReceipts": [
+      {
+        "id": 40005,
+        "sales_order_id": 70005,
+        "dr_number": 50005,
+        "Items": [
+          {
+            "id": 60005,
+            "sales_order_id": 70005,
+            "product_name": "Gypsum Board",
+            "quantity": 12,
+            "thickness": 9,
+            "width": 1200,
+            "length": 2400
+          }
+        ]
+      }
+    ],
+    "Transactions": [
+      {
+        "id": 80005,
+        "sales_order_id": 70005,
+        "action": "Created"
+      }
+    ]
+  }
+]

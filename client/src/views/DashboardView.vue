@@ -5,9 +5,21 @@
         <h4 class="mb-0">PSC Tracking System</h4>
         <button @click="handleLogout" class="logout-button">Logout</button>
       </div>
-      <button class="btn btn-success mb-3" @click="loadSO">
+      <!-- <button class="btn btn-success mb-3" @click="loadSO">
         Load SO
-      </button>
+      </button> -->
+
+      <div class="so-loader">
+        <input
+          v-model="soNumber"
+          type="text"
+          placeholder="Enter SO number"
+          class="input"
+        />
+        <button @click="searchAndAddSO" class="btn">
+          Search & Add SO
+        </button>
+      </div>
 
       <!-- <h3 class="mb-4 text-center">Pipeline</h3> -->
 
@@ -109,6 +121,7 @@ import { useUserStore } from "@/stores/user";
 const userStore = useUserStore();
 const router = useRouter();
 const activeTab = ref(0);
+const soNumber = ref('')
 
 const statuses = [
   "Sales Order is Being Prepared",
@@ -196,21 +209,36 @@ function handleLogout() {
   router.push("/login");
 }
 
-async function loadSO() {
+const searchAndAddSO = async () => {
+  if (!soNumber.value) {
+    alert('Please enter a Sales Order number.')
+    return
+  }
+
   try {
-    const res = await axios.get("/mock_so.json");
-    const mockSO = res.data;
+    const response = await axios.get('/mock_so.json')
+    const mockSOList = response.data
 
-    await axios.post("/orders", mockSO);
+    const mockSO = mockSOList.find(so => so.id === parseInt(soNumber.value))
 
-    alert("Mock SO loaded and sent to backend!");
+    if (!mockSO) {
+      alert(`Sales Order #${soNumber.value} not found.`)
+      return
+    }
+
+    const saveRes = await axios.post('/orders', mockSO);
+    await fetchOrders();
+
+    console.log('✅ Sales Order added:', saveRes.data)
+    alert('Sales Order added successfully!')
   } catch (err) {
-    console.error("Failed to load mock SO:", err);
-    alert("Failed to load mock SO.");
+    console.error('❌ Failed to add Sales Order:', err)
+    alert('Failed to add Sales Order.')
   }
 }
 
 onMounted(fetchOrders);
+
 </script>
 
 <style scoped>
@@ -292,6 +320,26 @@ body {
   background: linear-gradient(135deg, #1e3c72, #2a5298);
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.438);
   border-radius: 1rem;
+}
+
+/* SEARCH BUTTON */
+.so-loader {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.input {
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+.btn {
+  padding: 0.5rem 1rem;
+  background-color: #0066cc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 </style>

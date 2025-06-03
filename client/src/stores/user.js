@@ -15,7 +15,7 @@ export const useUserStore = defineStore('user', {
             Authorization: `Bearer ${this.token}`,
           },
         })
-        console.log('Fetched user:', res.data)
+        // console.log('Fetched user:', res.data)
         this.user = res.data
       } catch (err) {
         this.logout()

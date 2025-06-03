@@ -135,8 +135,7 @@ function openDeliveryModal(dr) {
   if (!modalInstance) {
     modalInstance = new Modal(modalRef.value);
   }
-  
-  modalInstance = new Modal(modalRef.value);
+
   modalInstance.show();
 }
 
