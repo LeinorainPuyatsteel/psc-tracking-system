@@ -94,6 +94,7 @@
             class="sortable-area"
             item-key="id"
             @end="onDragEnd"
+            :move="onMoveAttempt"
             :data-status="status"
             :disabled="userStore.user?.role === 'clet'"
           >
@@ -165,29 +166,65 @@ async function fetchOrders() {
   });
 }
 
+function onMoveAttempt(evt) {
+  return true;
+}
+
 async function onDragEnd(event) {
   const moved = event.item.__draggable_context?.element;
   const newStatus = event.to?.dataset?.status;
+  
   if (!moved || !newStatus) return;
 
-  const oldIndex = statuses.indexOf(moved.status);
+  const oldStatus = moved.status;
+  const oldIndex = statuses.indexOf(oldStatus);
   const newIndex = statuses.indexOf(newStatus);
+
+  if (oldIndex == newIndex) return;
 
   if (newIndex < oldIndex) {
     alert("Cannot move to an earlier stage.");
-    await fetchOrders();
+    await fetchOrders(); // Revert
     return;
   }
 
-  moved.status = newStatus;
-  const statusIndex = statuses.indexOf(newStatus) + 1;
-  await axios.put(`/orders/${moved.id}`, { status_id: statusIndex });
+  moveOrderBack(moved, oldStatus, newStatus);
+
+  const file = await promptForImage();
+  if (!file) {
+    alert("Image upload canceled. Status not updated.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("status_id", newIndex + 1);
+  formData.append("image", file);
+
+  try {
+    await axios.put(`/orders/${moved.id}/update-status`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    
+    orderMap[oldStatus] = orderMap[oldStatus].filter(o => o.id !== moved.id);
+    orderMap[newStatus].push(moved);
+
+    moved.status = newStatus;
+  } catch (err) {
+    console.error("Error updating status via drag:", err);
+    alert("Failed to update status.");
+    await fetchOrders();
+  }
 }
+
 
 async function updateStatus(order, newStatus) {
   const oldStatus = Object.keys(orderMap).find((key) => orderMap[key].includes(order));
   const oldIndex = statuses.indexOf(oldStatus);
   const newIndex = statuses.indexOf(newStatus);
+
+  if (newIndex == oldIndex) {
+    return;
+  }
 
   if (newIndex < oldIndex) {
     alert("You cannot move the order to an earlier stage.");
@@ -199,6 +236,7 @@ async function updateStatus(order, newStatus) {
   if (!file) {
     alert("Image upload canceled. Status not updated.");
     order.status = oldStatus;
+    moveOrderBack(moved, oldStatus, newStatus);
     return;
   }
 
@@ -219,14 +257,14 @@ async function updateStatus(order, newStatus) {
     alert("Failed to update status.");
     order.status = oldStatus;
   }
+}
 
-  // if (oldStatus && oldStatus !== newStatus) {
-  //   orderMap[oldStatus] = orderMap[oldStatus].filter((o) => o.id !== order.id);
-  //   if (!orderMap[newStatus]) orderMap[newStatus] = [];
-  //   orderMap[newStatus].push(order);
-  //   const statusIndex = statuses.indexOf(newStatus) + 1;
-  //   await axios.put(`/orders/${order.id}`, { status_id: statusIndex });
-  // }
+function moveOrderBack(order, fromStatus, toStatus) {
+  orderMap[toStatus] = orderMap[toStatus].filter(o => o.id !== order.id);
+  if (!orderMap[fromStatus].includes(order)) {
+    orderMap[fromStatus].push(order);
+  }
+  order.status = fromStatus;
 }
 
 function handleLogout() {
@@ -281,6 +319,7 @@ onMounted(fetchOrders);
 </script>
 
 <style scoped>
+
 body {
   background: linear-gradient(135deg, #1e3c72, #2a5298);
   min-height: 100vh;
