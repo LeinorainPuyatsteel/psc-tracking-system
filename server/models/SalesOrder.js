@@ -7,7 +7,6 @@ const SalesOrder = sequelize.define(
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
-      autoIncrement: true,
     },
     current_status_id: {
       type: DataTypes.INTEGER,

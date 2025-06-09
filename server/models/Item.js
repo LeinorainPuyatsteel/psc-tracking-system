@@ -18,8 +18,8 @@ const Item = sequelize.define('Item', {
   thickness: DataTypes.FLOAT,
   width: DataTypes.INTEGER,
   length: DataTypes.INTEGER,
-  linear_meter: DataTypes.FLOAT
-
+  linear_meter: DataTypes.FLOAT,
+  metric_tons: DataTypes.FLOAT
 }, {
   tableName: 'item',
 });

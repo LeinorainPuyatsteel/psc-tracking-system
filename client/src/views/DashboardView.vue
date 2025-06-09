@@ -48,16 +48,22 @@
         >
           <div v-for="order in orderMap[status]" :key="order.id" class="card mb-3">
             <div class="card-body" @click="$router.push(`/orders/${order.id}`)">
-              <div>
+              <div v-if="statuses.indexOf(order.status) < 3">
                 <strong>Sales Order #{{ order.id }}</strong> - {{ order.customer_name }}<br />
                 <span class="badge bg-info text-dark mt-1">{{ order.status }}</span>
+              </div>
+              <div v-else>
+                <strong>DRs:</strong>
+                <ul>
+                  <li v-for="dr in order.deliveryReceipts" :key="dr.id">{{ dr.id }}</li>
+                </ul>
               </div>
               <div class="mt-2" v-if="userStore.user?.role !== 'clet'">
                 <label class="form-label mb-1 small">Change Status:</label>
                 <select
                   class="form-select form-select-sm"
-                  v-model="order.status"
-                  @change="updateStatus(order, order.status)"
+                  :value="order.status"
+                  @change="e => updateStatus(order, e.target.value)"
                   @click.stop
                 >
                   <option
@@ -113,175 +119,72 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from "vue";
-import draggable from "vuedraggable";
-import axios from "@/api";
+import axios from "axios";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useUserStore } from "@/stores/user";
+import { useOrders } from "@/composables/useOrders";
+import { createOrder } from "@/services/orderService";
+import draggable from "vuedraggable";
 
 const userStore = useUserStore();
 const router = useRouter();
 const activeTab = ref(0);
-const soNumber = ref('')
+const soNumber = ref('');
 
-const statuses = [
-  "Sales Order is Being Prepared",
-  "Sales Order has been Fully Prepared and Transferred to the Loading Area",
-  "Loading is Ongoing",
-  "Fully Loaded",
-  "Waiting to be Dispatched",
-  "Truck is Being Weighed",
-  "Ready for Dispatch with no Discrepancy",
-  "Truck is Dispatched",
-];
-
-const iconMap = {
-  "Sales Order is Being Prepared": "clipboard-list",
-  "Sales Order has been Fully Prepared and Transferred to the Loading Area": "dolly",
-  "Loading is Ongoing": "truck-loading",
-  "Fully Loaded": "truck-front",
-  "Waiting to be Dispatched": "clock",
-  "Truck is Being Weighed": "weight",
-  "Ready for Dispatch with no Discrepancy": "clipboard-check",
-  "Truck is Dispatched": "truck-fast",
-};
-
-const slugify = (text) =>
-  text.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]+/g, "");
-
-const orderMap = reactive({});
-
-function resetOrderMap() {
-  statuses.forEach((status) => {
-    orderMap[status] = [];
-  });
-}
-
-async function fetchOrders() {
-  const res = await axios.get("/orders");
-  resetOrderMap();
-  res.data.forEach((order) => {
-    if (!orderMap[order.status]) orderMap[order.status] = [];
-    orderMap[order.status].push(order);
-  });
-}
+const {
+  statuses,
+  orderMap,
+  fetchOrders,
+  handleStatusChange,
+  moveOrderBack,
+  iconMap,
+  slugify,
+  resetOrderMap
+} = useOrders();
 
 function onMoveAttempt(evt) {
   return true;
 }
 
-async function onDragEnd(event) {
-  const moved = event.item.__draggable_context?.element;
-  const newStatus = event.to?.dataset?.status;
-  
-  if (!moved || !newStatus) return;
-
-  const oldStatus = moved.status;
-  const oldIndex = statuses.indexOf(oldStatus);
-  const newIndex = statuses.indexOf(newStatus);
-
-  if (oldIndex == newIndex) return;
-
-  if (newIndex < oldIndex) {
-    alert("Cannot move to an earlier stage.");
-    await fetchOrders(); // Revert
-    return;
-  }
-
-  moveOrderBack(moved, oldStatus, newStatus);
-
-  const file = await promptForImage();
-  if (!file) {
-    alert("Image upload canceled. Status not updated.");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("status_id", newIndex + 1);
-  formData.append("image", file);
-
-  try {
-    await axios.put(`/orders/${moved.id}/update-status`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    
-    orderMap[oldStatus] = orderMap[oldStatus].filter(o => o.id !== moved.id);
-    orderMap[newStatus].push(moved);
-
-    moved.status = newStatus;
-  } catch (err) {
-    console.error("Error updating status via drag:", err);
-    alert("Failed to update status.");
-    await fetchOrders();
-  }
-}
-
-
-async function updateStatus(order, newStatus) {
-  const oldStatus = Object.keys(orderMap).find((key) => orderMap[key].includes(order));
-  const oldIndex = statuses.indexOf(oldStatus);
-  const newIndex = statuses.indexOf(newStatus);
-
-  if (newIndex == oldIndex) {
-    return;
-  }
-
-  if (newIndex < oldIndex) {
-    alert("You cannot move the order to an earlier stage.");
-    order.status = oldStatus;
-    return;
-  }
-
-  const file = await promptForImage();
-  if (!file) {
-    alert("Image upload canceled. Status not updated.");
-    order.status = oldStatus;
-    moveOrderBack(moved, oldStatus, newStatus);
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("status_id", newIndex + 1);
-  formData.append("image", file);
-
-  try {
-    await axios.put(`/orders/${order.id}/update-status`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-
-    orderMap[oldStatus] = orderMap[oldStatus].filter(o => o.id !== order.id);
-    orderMap[newStatus].push(order);
-
-  } catch (err) {
-    console.error("Error updating status:", err);
-    alert("Failed to update status.");
-    order.status = oldStatus;
-  }
-}
-
-function moveOrderBack(order, fromStatus, toStatus) {
-  orderMap[toStatus] = orderMap[toStatus].filter(o => o.id !== order.id);
-  if (!orderMap[fromStatus].includes(order)) {
-    orderMap[fromStatus].push(order);
-  }
-  order.status = fromStatus;
-}
+onMounted(fetchOrders);
 
 function handleLogout() {
   userStore.logout();
   router.push("/login");
 }
 
-const searchAndAddSO = async () => {
-  if (!soNumber.value) {
-    alert('Please enter a Sales Order number.')
-    return
-  }
+async function onDragEnd({ item, to }) {
+  const order = item?.__draggable_context?.element;
+  const newStatus = to?.dataset?.status;
+
+  if (!order || !newStatus) return;
 
   try {
-    const response = await axios.get('/mock_so.json')
-    const mockSOList = response.data
+    await handleStatusChange(order, newStatus);
+  } catch (err) {
+    alert(err.message);
+    await fetchOrders();
+  }
+  fetchOrders();
+}
 
+async function updateStatus(order, newStatus) {
+  console.log('Old:', order.status, 'New:', newStatus);
+  try {
+    await handleStatusChange(order, newStatus);
+  } catch (err) {
+    alert(err.message);
+    // await fetchOrders();
+  }
+}
+
+async function searchAndAddSO() {
+  if (!soNumber.value) return alert("Please enter a Sales Order number.");
+
+  try {
+    const response = await axios.get('api/mock_so.json')
+    const mockSOList = response.data
     const mockSO = mockSOList.find(so => so.id === parseInt(soNumber.value))
 
     if (!mockSO) {
@@ -289,33 +192,18 @@ const searchAndAddSO = async () => {
       return
     }
 
-    const saveRes = await axios.post('/orders', mockSO);
+    await createOrder(mockSO);
     await fetchOrders();
-
-    console.log('✅ Sales Order added:', saveRes.data)
-    alert('Sales Order added successfully!')
+    alert("Sales Order added successfully!");
   } catch (err) {
-    if (err.response && err.response.status === 400 && err.response.data?.error === 'Duplicate entry detected') {
+    if (err.response?.data?.error === "Duplicate entry detected") {
       alert(`❌ Cannot add: Sales Order #${soNumber.value} already exists.`);
     } else {
-      console.error('❌ Order create failed:', err);
-      alert('Something went wrong while adding the order.');
+      console.error("Create failed:", err);
+      alert("Something went wrong while adding the order.");
     }
   }
 }
-
-async function promptForImage() {
-  return new Promise((resolve) => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-    input.onchange = () => resolve(input.files[0]);
-    input.click();
-  });
-}
-
-onMounted(fetchOrders);
-
 </script>
 
 <style scoped>
