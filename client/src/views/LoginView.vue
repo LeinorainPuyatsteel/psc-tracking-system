@@ -4,27 +4,33 @@
       <div class="row justify-content-center">
         <div class="col-12 col-sm-10 col-md-8 col-lg-5 col-xl-4">
           <div class="glass-card p-4">
-            <h3 class="mb-4 text-center text-white">PSC Login</h3>
+            <div class="text-center">
+              <font-awesome-icon :icon="['fa', 'user-large',]" size="6x" inverse/>
+            </div>
+            <br>
+            <h3 class="mb-4 text-center">PSC Tracking System</h3>
             <form @submit.prevent="login">
-              <div class="mb-3">
-                <label class="form-label text-white">Username</label>
+              <div class="mb-3 input-icon-wrapper">
+                <font-awesome-icon class="input-icon px-3" :icon="['fa', 'user',]"/>
                 <input
                   v-model="username"
                   type="text"
-                  class="form-control"
+                  class="form-control rounded-pill input-with-icon"
+                  placeholder="Username"
                   required
                 />
               </div>
-              <div class="mb-3">
-                <label class="form-label text-white">Password</label>
+              <div class="mb-3 input-icon-wrapper">
+                <font-awesome-icon class="input-icon px-3" :icon="['fa', 'lock',]"/>
                 <input
                   v-model="password"
                   type="password"
-                  class="form-control"
+                  class="form-control rounded-pill input-with-icon"
+                  placeholder="Password"
                   required
                 />
               </div>
-              <button class="btn btn-primary w-100">Login</button>
+              <button class="btn btn-primary w-100 rounded-pill">Login</button>
             </form>
             <div v-if="error" class="text-warning mt-3 text-center small">
               {{ error }}
@@ -71,18 +77,18 @@ async function login() {
 
 
 <style scoped>
-.blue-glass-bg {
-  background: linear-gradient(to bottom right, #0f2027, #203a43, #2c5364);
-  background-size: cover;
-  background-position: center;
-}
+  .blue-glass-bg {
+    background: radial-gradient(circle,rgba(196, 237, 255, 1) 35%, rgba(42, 123, 155, 1) 95%);
+    background-size: cover;
+    background-position: center;
+  }
 
-.glass-card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: 16px;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
+  .glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
 </style>

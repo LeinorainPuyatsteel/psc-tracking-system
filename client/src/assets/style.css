@@ -41,3 +41,85 @@ opacity: 0.4;
 .sortable-chosen {
 background: #f8f9fa;
 }
+
+.input-icon-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.input-with-icon {
+  padding-left: 3rem;
+  width: 100%;
+}
+
+.input-icon {
+  position: absolute;
+  top: 50%;
+  left: 0.5rem;
+  transform: translateY(-50%);
+  color: #aaa;
+  pointer-events: none;
+}
+
+.nav-tabs .nav-link.active {
+  border-bottom: 2px solid rgb(25, 0, 255); /* Shopee-style orange */
+  font-weight: bold;
+}
+
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}
+
+.status-swipe {
+    white-space: nowrap;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+}
+
+.swipe-area {
+  overflow-x: hidden;
+}
+
+.swipe-slide {
+  transition: transform 0.3s ease;
+  will-change: transform;
+}
+
+.slide-left-enter-active,
+.slide-left-leave-active,
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  position: absolute;
+  width: 100%;
+}
+
+.slide-left-enter-from,
+.slide-right-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.slide-left-leave-to,
+.slide-right-enter-from {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.slide-right-enter-from {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+.slide-right-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.scroll-container {
+  scroll-behavior: smooth;
+}

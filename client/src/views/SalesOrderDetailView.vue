@@ -220,11 +220,9 @@ console.log("User role:", userStore.user?.role);
 
 <style>
 body {
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
   min-height: 100vh;
   margin: 0;
   font-family: 'Segoe UI', sans-serif;
-  color: white;
 }
 </style>
 

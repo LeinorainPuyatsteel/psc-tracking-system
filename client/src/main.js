@@ -22,6 +22,12 @@ import {
   faTruckFront,
   faClipboardCheck,
   faArrowLeft,
+  faUserLarge,
+  faUser,
+  faLock,
+  faMagnifyingGlass,
+  faPlus,
+  faRightFromBracket
 } from "@fortawesome/free-solid-svg-icons";
 
 library.add(
@@ -35,7 +41,13 @@ library.add(
   faTruckFast,
   faTruckFront,
   faClipboardCheck,
-  faArrowLeft
+  faArrowLeft,
+  faUserLarge,
+  faUser,
+  faLock,
+  faMagnifyingGlass,
+  faPlus,
+  faRightFromBracket
 );
 
 const app = createApp(App);

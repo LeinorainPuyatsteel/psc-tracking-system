@@ -3,69 +3,108 @@
     <div class="container-fluid py-4">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">PSC Tracking System</h4>
-        <button @click="handleLogout" class="logout-button">Logout</button>
-      </div>
-
-      <div class="so-loader">
-        <input
-          v-model="soNumber"
-          type="text"
-          placeholder="Enter SO number"
-          class="input"
-        />
-        <button @click="searchAndAddSO" class="btn">
-          Search & Add SO
+        <button
+          @click="handleLogout"
+          class="btn btn-danger rounded-pill px-md-5 ms-auto"
+        >
+          <font-awesome-icon :icon="['fa', 'right-from-bracket']" />
+          Logout
         </button>
       </div>
 
+      <div class="so-loader d-flex align-items-center px-md-4">
+        <div class="d-flex align-items-center">
+          <div class="input-icon-wrapper">
+            <font-awesome-icon class="input-icon px-3" :icon="['fa', 'magnifying-glass']" />
+            <input
+              v-model="soNumber"
+              type="text"
+              placeholder="Sales Order Number"
+              class="form-control rounded-start-pill input-with-icon"
+            />
+          </div>
+          <button
+            @click="searchAndAddSO"
+            class="btn btn-primary rounded-end-pill w-50"
+          >
+            <font-awesome-icon :icon="['fa', 'plus']" />
+            Add SO
+          </button>
+        </div>
+      </div>
+
+      <br>
       <!-- <h3 class="mb-4 text-center">Pipeline</h3> -->
 
       <!-- Mobile Tabs -->
-      <ul class="nav nav-tabs flex-column d-md-none mb-3" id="orderTabs">
-        <li class="nav-item mb-2" v-for="(status, index) in statuses" :key="status">
+      <ul
+        class="nav nav-tabs flex-row d-md-none mb-3 overflow-auto hide-scrollbar status-swipe"
+        id="orderTabs"
+      >
+        <li
+          class="nav-item me-2"
+          v-for="(status, index) in statuses"
+          :key="status"
+          style="flex: 0 0 auto;"
+        >
           <button
-            class="nav-link w-100 text-start"
+            class="nav-link"
             :class="{ active: index === activeTab }"
             type="button"
-            @click="activeTab = index"
+            @click="setActiveTab(index)"
+            :ref="el => registerTabRef(el, index)"
           >
-            <font-awesome-icon :icon="iconMap[status]" class="me-2" />
+            <font-awesome-icon :icon="iconMap[status]" class="me-1" />
             {{ status }}
           </button>
         </li>
       </ul>
-
-      <div class="tab-content d-md-none" id="tabContentMobile">
-        <div
-          class="tab-pane fade"
-          :class="{ 'show active': index === activeTab }"
-          v-for="(status, index) in statuses"
-          :id="slugify(status)"
-          :key="status"
-        >
-          <div
-            v-for="entry in orderMap[status]"
-            :key="`${entry.isDR ? 'dr' : 'so'}-${entry.id}`"
-            class="card mb-3 text-white bg-dark shadow"
-          >
-            <div class="card-body">
-              <div v-if="entry.isDR">
-                <h5 class="card-title">Delivery Receipt #{{ entry.id }}</h5>
-                <p class="card-text">
-                  <strong>Customer:</strong> {{ entry.customer_name }}<br />
-                  <strong>SO #:</strong> {{ entry.sales_order_id }}<br />
-                  <strong>Status:</strong> {{ entry.status?.status || 'N/A' }}
-                </p>
-              </div>
-              <div v-else>
-                <h5 class="card-title">Sales Order #{{ entry.id }}</h5>
-                <p class="card-text">
-                  <strong>Customer:</strong> {{ entry.customer_name }}<br />
-                  <strong>Status:</strong> {{ entry.status }}
-                </p>
-              </div>
+      <div
+        class="tab-content d-md-none swipe-area"
+        id="tabContentMobile"
+        @touchstart="handleTouchStart"
+        @touchend="handleTouchEnd"
+      >
+        <div class="position-relative" style="min-height: 150px;">
+          <transition :name="`slide-${transitionDirection}`" mode="out-in">
+            <div
+              class="tab-pane fade show active"
+              v-if="statuses[activeTab]"
+              :id="slugify(statuses[activeTab])"
+              :key="statuses[activeTab]"
+            >
+              <template v-if="orderMap[statuses[activeTab]]?.length">
+                <div
+                  v-for="entry in orderMap[statuses[activeTab]]"
+                  :key="`${entry.isDR ? 'dr' : 'so'}-${entry.id}`"
+                  class="card mb-3 shadow"
+                >
+                    <div class="card-body">
+                      <div v-if="entry.isDR">
+                        <h5 class="card-title">Delivery Receipt #{{ entry.id }}</h5>
+                      <p class="card-text">
+                        <strong>Customer:</strong> {{ entry.customer_name }}<br />
+                        <strong>SO #:</strong> {{ entry.sales_order_id }}<br />
+                        <strong>Status:</strong> {{ entry.status || 'N/A' }}
+                      </p>
+                    </div>
+                    <div v-else>
+                      <h5 class="card-title">Sales Order #{{ entry.id }}</h5>
+                      <p class="card-text">
+                        <strong>Customer:</strong> {{ entry.customer_name }}<br />
+                        <strong>Status:</strong> {{ entry.status }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </template>
+              <template v-else>
+                <div class="text-center py-4">
+                  {{ activeTab === 0 ? 'No Sales Order' : 'No Delivery Receipt' }}
+                </div>
+              </template>
             </div>
-          </div>
+          </transition>
         </div>
       </div>
 
@@ -76,7 +115,7 @@
           v-for="status in statuses"
           :key="status"
         >
-          <h6 class="text-white">
+          <h6>
             <font-awesome-icon :icon="iconMap[status]" class="me-2" />
             {{ status }}
           </h6>
@@ -134,7 +173,7 @@
 
 <script setup>
 import axios from "axios";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { useUserStore } from "@/stores/user";
 import { useOrders } from "@/composables/useOrders";
@@ -145,6 +184,7 @@ const userStore = useUserStore();
 const router = useRouter();
 const activeTab = ref(0);
 const soNumber = ref('');
+
 
 const {
   statuses,
@@ -157,8 +197,53 @@ const {
   resetOrderMap
 } = useOrders();
 
+let touchStartX = 0
+let touchEndX = 0
+const transitionDirection = ref("left");
+
+const tabRefs = ref([]);
+
+function handleTouchStart(e) {
+  touchStartX = e.changedTouches[0].screenX;
+}
+
+function handleTouchEnd(e) {
+  touchEndX = e.changedTouches[0].screenX;
+  const delta = touchEndX - touchStartX;
+
+  if (delta < -50 && activeTab.value < statuses.length - 1) {
+    setActiveTab(activeTab.value + 1);
+  } else if (delta > 50 && activeTab.value > 0) {
+    setActiveTab(activeTab.value - 1);
+  }
+}
+
 function onMoveAttempt(evt) {
   return true;
+}
+
+function registerTabRef(el, index) {
+  if (el) {
+    tabRefs.value[index] = el;
+  }
+}
+
+function setActiveTab(index) {
+  if (index === activeTab.value) return;
+  transitionDirection.value = index > activeTab.value ? 'left' : 'right';
+  activeTab.value = index;
+
+  nextTick(() => {
+    if (tabRefs.value[index]) {
+      tabRefs.value[index].scrollIntoView({
+        behavior: 'smooth',
+        inline: 'center',
+        block: 'nearest',
+      });
+    } else {
+      console.warn('Tab ref not found for index:', index);
+    }
+  });
 }
 
 onMounted(fetchOrders);
@@ -220,15 +305,6 @@ async function searchAndAddSO() {
 </script>
 
 <style scoped>
-
-body {
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
-  min-height: 100vh;
-  margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-  color: white;
-}
-
 .glass-card {
   background: rgba(255, 255, 255, 0.85); /* Light glass background */
   backdrop-filter: blur(8px);
@@ -237,13 +313,8 @@ body {
   box-shadow: 0 0 15px rgba(0, 123, 255, 0.2);
 }
 
-.text-dark {
-  color: #212529 !important;
-}
-
 .dashboard-wrapper {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
 }
 
 .container-fluid {
@@ -251,7 +322,6 @@ body {
   backdrop-filter: blur(12px);
   border-radius: 16px;
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.25);
-  color: white;
   max-width: 1400px;
   width: 100%;
 }
@@ -261,24 +331,10 @@ body {
   backdrop-filter: blur(6px);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 1rem;
-  color: white;
 }
 
 .card-body {
   cursor: pointer;
-}
-
-.logout-button {
-  background: rgba(255, 255, 255, 0.15);
-  border: none;
-  padding: 0.4rem 1rem;
-  border-radius: 0.5rem;
-  color: white;
-  transition: background 0.3s;
-}
-
-.logout-button:hover {
-  background: rgba(255, 255, 255, 0.3);
 }
 
 .kanban-board {
@@ -290,35 +346,9 @@ body {
   min-height: 150px;
 }
 
-.kanban-column h6 {
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
-  /* border-radius: 1rem; */
-}
-
 .kanban-column {
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.438);
   border-radius: 1rem;
-}
-
-/* SEARCH BUTTON */
-.so-loader {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-.input {
-  padding: 0.5rem;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-}
-.btn {
-  padding: 0.5rem 1rem;
-  background-color: #0066cc;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
 }
 
 </style>
