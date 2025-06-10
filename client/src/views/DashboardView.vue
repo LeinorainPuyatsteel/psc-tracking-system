@@ -5,9 +5,6 @@
         <h4 class="mb-0">PSC Tracking System</h4>
         <button @click="handleLogout" class="logout-button">Logout</button>
       </div>
-      <!-- <button class="btn btn-success mb-3" @click="loadSO">
-        Load SO
-      </button> -->
 
       <div class="so-loader">
         <input
@@ -46,34 +43,26 @@
           :id="slugify(status)"
           :key="status"
         >
-          <div v-for="order in orderMap[status]" :key="order.id" class="card mb-3">
-            <div class="card-body" @click="$router.push(`/orders/${order.id}`)">
-              <div v-if="statuses.indexOf(order.status) < 3">
-                <strong>Sales Order #{{ order.id }}</strong> - {{ order.customer_name }}<br />
-                <span class="badge bg-info text-dark mt-1">{{ order.status }}</span>
+          <div
+            v-for="entry in orderMap[status]"
+            :key="`${entry.isDR ? 'dr' : 'so'}-${entry.id}`"
+            class="card mb-3 text-white bg-dark shadow"
+          >
+            <div class="card-body">
+              <div v-if="entry.isDR">
+                <h5 class="card-title">Delivery Receipt #{{ entry.id }}</h5>
+                <p class="card-text">
+                  <strong>Customer:</strong> {{ entry.customer_name }}<br />
+                  <strong>SO #:</strong> {{ entry.sales_order_id }}<br />
+                  <strong>Status:</strong> {{ entry.status?.status || 'N/A' }}
+                </p>
               </div>
               <div v-else>
-                <strong>DRs:</strong>
-                <ul>
-                  <li v-for="dr in order.deliveryReceipts" :key="dr.id">{{ dr.id }}</li>
-                </ul>
-              </div>
-              <div class="mt-2" v-if="userStore.user?.role !== 'clet'">
-                <label class="form-label mb-1 small">Change Status:</label>
-                <select
-                  class="form-select form-select-sm"
-                  :value="order.status"
-                  @change="e => updateStatus(order, e.target.value)"
-                  @click.stop
-                >
-                  <option
-                    v-for="s in statuses.slice(statuses.indexOf(order.status))"
-                    :key="s"
-                    :value="s"
-                  >
-                    {{ s }}
-                  </option>
-                </select>
+                <h5 class="card-title">Sales Order #{{ entry.id }}</h5>
+                <p class="card-text">
+                  <strong>Customer:</strong> {{ entry.customer_name }}<br />
+                  <strong>Status:</strong> {{ entry.status }}
+                </p>
               </div>
             </div>
           </div>
@@ -91,9 +80,14 @@
             <font-awesome-icon :icon="iconMap[status]" class="me-2" />
             {{ status }}
           </h6>
-          <div v-if="orderMap[status]?.length === 0" class="text-light small mt-2 text-center">
-            No Sales Order for this stage.
+
+          <div
+            v-if="orderMap[status]?.length === 0"
+            class="text-light small mt-2 text-center"
+          >
+            No Orders for this stage.
           </div>
+
           <draggable
             :list="orderMap[status]"
             :group="'orders'"
@@ -106,8 +100,28 @@
           >
             <template #item="{ element: order }">
               <div class="card mb-3 draggable-card">
-                <div class="card-body" @click="$router.push(`/orders/${order.id}`)">
-                  <strong>Sales Order #{{ order.id }}</strong> - {{ order.customer_name }}
+                <div
+                  class="card-body"
+                  @click="
+                    $router.push(
+                      order.isDR
+                        ? `/orders/${order.sales_order_id}`
+                        : `/orders/${order.id}`
+                    )
+                  "
+                >
+                  <strong v-if="order.isDR">
+                    Delivery Receipt #{{ order.id }}
+                  </strong>
+                  <strong v-else>
+                    Sales Order #{{ order.id }}
+                  </strong>
+                  <div>
+                    {{ order.customer_name }}
+                    <span v-if="order.isDR" class="d-block text-muted small">
+                      From SO #{{ order.sales_order_id }}
+                    </span>
+                  </div>
                 </div>
               </div>
             </template>
@@ -175,7 +189,6 @@ async function updateStatus(order, newStatus) {
     await handleStatusChange(order, newStatus);
   } catch (err) {
     alert(err.message);
-    // await fetchOrders();
   }
 }
 

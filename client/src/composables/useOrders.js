@@ -37,36 +37,71 @@ export function useOrders() {
 
   const fetchOrders = async () => {
     const orders = await fetchAllOrders();
+    console.log("Fetched orders:", orders);
+
     resetOrderMap();
+
     orders.forEach((order) => {
-      if (!orderMap[order.status]) orderMap[order.status] = [];
-      orderMap[order.status].push(order);
-    });
-  };
+      const statusIndex = statuses.indexOf(order.status);
+      console.log(`Order #${order.id} is at stage ${statusIndex} (${order.status})`);
+    
+      if (statusIndex >= 1) {
+        // Use DRs instead of the SO
+        order.DeliveryReceipts.forEach(dr => {
+        const statusStr = dr.status?.status || "Unknown";
+          if (!orderMap[statusStr]) orderMap[statusStr] = [];
+          orderMap[statusStr].push({
+            ...dr,
+            sales_order_id: order.id,
+            customer_name: order.customer_name,
+            isDR: true,
+            status: statusStr,
+          });
+        });
+      } else {
+        if (!orderMap[order.status]) orderMap[order.status] = [];
+        orderMap[order.status].push(order);
+      }
+    }
+  );
+};
 
   const handleStatusChange = async (order, newStatus) => {
-    const oldStatus = order.status;
+    const isDR = !!order.isDR;
+    console.log(isDR)
+    const entityId = order.id;
+    const oldStatus = order.status?.status || order.status;
     const oldIndex = statuses.indexOf(oldStatus);
     const newIndex = statuses.indexOf(newStatus);
 
     if (newIndex === oldIndex) return;
     if (newIndex < oldIndex) throw new Error("Cannot move to an earlier stage.");
 
-    if (oldIndex === 1 && newIndex === 2) {
+    if (!order.isDR && oldIndex === 0 && newIndex === 1) {
       await fetchDeliveryReceipts(order.id);
     }
 
     const file = await promptForImage();
+
     if (!file){
       console.log("File status:", !file)
       throw new Error("Image upload canceled.");
     }
 
-    await updateOrderStatus(order.id, newIndex + 1, file);
+    console.log(
+      `[TRACKING] Updating ${isDR ? 'DR' : 'SO'} #${entityId} to stage ${newIndex + 1}`
+    );
 
+    await updateOrderStatus(entityId, newIndex + 1, file, isDR);
+
+    if (!orderMap[oldStatus]) {
+      console.warn(`⚠️ oldStatus "${oldStatus}" does not exist in orderMap`);
+      return;
+    }
+    
     orderMap[oldStatus] = orderMap[oldStatus].filter(o => o.id !== order.id);
     orderMap[newStatus].push(order);
-    order.status = newStatus;
+    order.status = { status: newStatus };
   };
 
   return {

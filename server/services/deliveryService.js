@@ -41,7 +41,7 @@ const DeliveryService = {
         trucking_name: group.trucking,
         plate_number: group.plate_no,
         truck_type: group.truck_type,
-        current_status_id: 1,
+        current_status_id: 2,
       });
 
       for (const item of group.items) {

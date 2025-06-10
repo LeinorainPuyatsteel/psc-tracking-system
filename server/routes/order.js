@@ -24,18 +24,37 @@ function auth(req, res, next) {
 // GET-ALL SALES ORDER
 router.get('/', auth, async (req, res) => {
   try {
+    const includeDRs = req.query.includeDRs === 'true';
+
     const salesOrders = await SalesOrder.findAll({
-      include: {
-        model: Status,
-        as: 'status',
-        attributes: ['status'],
-      }
+      include: [
+        {
+          model: Status,
+          as: 'status',
+          attributes: ['status'],
+        },
+        ...(includeDRs ? [
+          {
+            model: DeliveryReceipt,
+            include: [
+              { model: Item },
+              {
+                model: Status,
+                as: 'status',
+                attributes: ['status'],
+              }
+            ]
+          }
+        ] : [])
+      ]
     });
 
     const result = salesOrders.map(order => ({
       id: order.id,
       customer_name: order.customer_name,
       status: order.status?.status,
+      current_status_id: order.current_status_id,
+      DeliveryReceipts: includeDRs ? order.DeliveryReceipts : undefined,
     }));
 
     res.json(result);
@@ -111,7 +130,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// PUT with image upload
+// PUT SO with image upload
 router.put('/:id/update-status', auth, upload.single('image'), async (req, res) => {
   try {
     const { status_id } = req.body;
@@ -139,35 +158,6 @@ router.put('/:id/update-status', auth, upload.single('image'), async (req, res) 
   } catch (err) {
     console.error('Update with image error:', err);
     res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// PUT /orders/:id - update an order's status
-router.put('/:id', auth, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { status_id } = req.body;
-
-    const currentOrder = await SalesOrder.findByPk(req.params.id);
-    if (req.body.status_id < currentOrder.status_id) {
-      return res.status(400).json({ message: "Cannot move to an earlier status." });
-    }
-
-    const order = await SalesOrder.findByPk(id);
-    if (!order) return res.status(404).json({ error: 'Order not found' });
-
-    order.current_status_id = status_id;
-    await order.save();
-
-    await Transaction.create({
-      sales_order_id: id,
-      status_id,
-    });
-
-    res.json({ message: 'Status updated and transaction logged' });
-
-  } catch (err) {
-    console.error('Error updating order:', err);
   }
 });
 

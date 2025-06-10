@@ -36,7 +36,6 @@ const seed = async () => {
     role: 'girlie'
   });
 
-  // Create statuses
   await Status.bulkCreate([
     { status: 'Sales Order is Being Prepared' },
     { status: 'Sales Order has been Fully Prepared and Transferred to the Loading Area' },
@@ -52,10 +51,6 @@ const seed = async () => {
     { id: 14915, name: 'Alpha Corp', address: '123 Alpha Street', contact: '1234567890' },
     { id: 16459, name: 'Beta Inc', address: '456 Beta Avenue', contact: '2345678901' },
     { id: 15334, name: 'Gamma Ltd', address: '789 Gamma Blvd', contact: '3456789012' },
-    // { id: , name: 'Delta Co', address: '101 Delta Drive', contact: '4567890123' },
-    // { id: , name: 'Epsilon LLC', address: '202 Epsilon Way', contact: '5678901234' },
-    // { id: , name: 'Zeta Traders', address: '303 Zeta Road', contact: '6789012345' },
-    // { id: , name: 'Eta Services', address: '404 Eta Lane', contact: '7890123456' }
   ];
 
   for (const customer of sampleCustomers) {
@@ -68,49 +63,10 @@ const seed = async () => {
       current_status_id: 1
     });
 
-    // // Create between 1–1 delivery receipts
-    // const drCount = getRandom(1, 1);
-    // const deliveryReceipts = await Promise.all(
-    //   Array.from({ length: drCount }).map(() =>
-    //     DeliveryReceipt.create({
-    //       sales_order_id: salesOrder.id,
-    //       current_status_id: 1
-    //     })
-    //   )
-    // );
-
-    // // Create 4–10 items
-    // const itemCount = getRandom(4, 10);
-    // const items = Array.from({ length: itemCount }).map((_, i) => ({
-    //   sales_order_id: salesOrder.id,
-    //   product_name: `Product ${i + 1}`,
-    //   quantity: getRandomFloat(1, 10),
-    //   thickness: getRandomFloat(0.5, 2),
-    //   width: getRandom(100, 300),
-    //   length: getRandom(100, 1000),
-    //   linear_meter: getRandomFloat(1, 50),
-    //   metric_tons: getRandomFloat(1, 50)
-    // }));
-
-    // // Distribute items across delivery receipts
-    // const itemsPerDr = Math.ceil(itemCount / drCount);
-    // let itemIndex = 0;
-
-    // for (const dr of deliveryReceipts) {
-    //   const chunk = items.slice(itemIndex, itemIndex + itemsPerDr).map(item => ({
-    //     ...item,
-    //     delivery_receipt_id: dr.id
-    //   }));
-    //   await Item.bulkCreate(chunk);
-    //   itemIndex += itemsPerDr;
-
-    //   // Create transaction per delivery receipt
-    //   await Transaction.create({
-    //     sales_order_id: salesOrder.id,
-    //     delivery_receipt_id: dr.id,
-    //     status_id: 1
-    //   });
-    // }
+    await Transaction.create({
+      sales_order_id: salesOrder.id,
+      status_id: 1
+    });
   }
 
   console.log('✅ Full seed complete: Users, Statuses, Sales Orders, DRs, Items, and Transactions.');

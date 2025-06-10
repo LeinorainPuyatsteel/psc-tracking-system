@@ -98,7 +98,7 @@
             </ul>
 
             <!-- Optionally show DR transactions here -->
-            <!--
+            
             <h6>Transactions</h6>
             <ul class="list-group">
               <li
@@ -109,7 +109,7 @@
                 {{ tx.status?.status }} — {{ new Date(tx.createdAt).toLocaleString() }}
               </li>
             </ul>
-            -->
+           
           </div>
         </div>
       </div>

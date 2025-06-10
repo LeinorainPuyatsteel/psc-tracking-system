@@ -11,7 +11,7 @@ const DeliveryReceipt = sequelize.define('DeliveryReceipt', {
   },
   current_status_id: {
     type: DataTypes.INTEGER,
-    defaultValue: 0,  
+    defaultValue: 1,  
   },
   trucking_name: {
     type: DataTypes.STRING,
