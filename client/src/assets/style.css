@@ -25,12 +25,45 @@
     }
 }
 
+body {
+  background: linear-gradient(135deg, #172f5c, #3066c2);
+}
+
+.container-fluid {
+  background-color: white !important;
+  border-radius: 16px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.25);
+}
+
+.container {
+  background-color: white !important;
+}
+
 .draggable-card {
 cursor: grab;
 }
 
+.draggable-card:hover {
+transform: translate3D(0,-1px,0) scale(1.03);
+box-shadow: 8px 28px 50px rgba(39, 44, 49, 0.2), 1px 6px 12px rgba(39, 44, 49, 0.2) !important;
+background-color: rgb(244, 248, 255) !important;
+transition: all .3s ease;
+}
+
+.list-group-item:hover{
+transform: translate3D(0,-0.5px,0) scale(1.001);
+box-shadow: 8px 28px 50px rgba(39, 44, 49, 0.1), 1px 6px 12px rgba(39, 44, 49, 0.1) !important;
+transition: all .05s ease;
+}
+
+button:hover {
+transform: translate3D(0,-0.5px,0) scale(1.001);
+box-shadow: 8px 28px 50px rgba(39, 44, 49, 0.1), 1px 6px 12px rgba(39, 44, 49, 0.1) !important;
+transition: all .05s ease;
+}
+
 .sortable-area {
-min-height: 100px;
+min-height: 190px;
 padding: 0.5rem;
 }
 
@@ -62,7 +95,7 @@ background: #f8f9fa;
 }
 
 .nav-tabs .nav-link.active {
-  border-bottom: 2px solid rgb(25, 0, 255); /* Shopee-style orange */
+  border-bottom: 2px solid rgb(25, 0, 255);
   font-weight: bold;
 }
 
@@ -76,9 +109,9 @@ background: #f8f9fa;
 }
 
 .status-swipe {
-    white-space: nowrap;
     flex-wrap: nowrap;
     -webkit-overflow-scrolling: touch;
+    border: none
 }
 
 .swipe-area {
@@ -86,7 +119,7 @@ background: #f8f9fa;
 }
 
 .swipe-slide {
-  transition: transform 0.3s ease;
+  transition: transform 0.1s ease;
   will-change: transform;
 }
 
@@ -94,7 +127,7 @@ background: #f8f9fa;
 .slide-left-leave-active,
 .slide-right-enter-active,
 .slide-right-leave-active {
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition: transform 0.2s ease, opacity 0.2s ease;
   position: absolute;
   width: 100%;
 }

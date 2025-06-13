@@ -1,5 +1,5 @@
 <template>
-  <div class="container py-4">
+  <div class="container py-4 mt-4">
     <button class="btn btn-secondary mb-3" @click="$router.back()">
       <font-awesome-icon icon="arrow-left" class="me-2" /> Back
     </button>
@@ -29,7 +29,7 @@
     <ul class="list-group mb-4" v-if="userStore.user?.role !== 'clet'">
       <li class="list-group-item" v-for="item in order.Items" :key="item.id">
         {{ item.product_name }} — {{ item.quantity }} pcs
-        ({{ item.thickness }}mm x {{ item.width }}mm x {{ item.length }}mm)
+        ({{ item.thickness }}mm x {{ item.width }}mm x {{ item.length }}ft)
       </li>
     </ul>
 
@@ -42,8 +42,10 @@
         @click="openDeliveryModal(dr)"
         role="button"
       >
-        DR #{{ dr.id }}
-        <span class="badge bg-info">{{ dr.status?.status }}</span>
+        <span class="text-nowrap pe-3">
+          DR #{{ dr.id }}
+        </span>
+        <span class="badge bg-info text-wrap mw-">{{ dr.status?.status }}</span>
       </li>
     </ul>
 
@@ -218,70 +220,18 @@ function openTransactionModal(tx) {
 console.log("User role:", userStore.user?.role);
 </script>
 
-<style>
-body {
-  min-height: 100vh;
-  margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-}
-</style>
-
-
 <style scoped>
 .container {
   background: rgba(255, 255, 255, 0.08);
   border-radius: 1rem;
   padding: 2rem;
-  color: white;
-  max-width: 1000px;
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
-}
-
-.btn-secondary {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.btn-primary {
-  background: rgba(0, 123, 255, 0.3);
-  border: none;
-  color: white;
-}
-
-.btn-primary:hover {
-  background: rgba(0, 123, 255, 0.5);
 }
 
 .list-group-item {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  color: white;
   cursor: pointer;
-}
-
-.modal-content {
-  background: rgba(30, 60, 114, 0.9);
-  color: white;
-  border-radius: 1rem;
-  border: none;
-}
-
-.modal-header,
-.modal-body {
-  border-bottom: none;
-}
-
-.modal-title {
-  color: white;
-}
-
-hr {
-  border-color: rgba(255, 255, 255, 0.2);
 }
 </style>
 

@@ -77,6 +77,10 @@ async function login() {
 
 
 <style scoped>
+  .container{
+    background-color: transparent !important;
+  }
+
   .blue-glass-bg {
     background: radial-gradient(circle,rgba(196, 237, 255, 1) 35%, rgba(42, 123, 155, 1) 95%);
     background-size: cover;

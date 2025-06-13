@@ -1,11 +1,11 @@
 <template>
   <div class="dashboard-wrapper d-flex justify-content-center align-items-start py-5">
     <div class="container-fluid py-4">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">PSC Tracking System</h4>
+      <div class="d-flex justify-content-between align-items-center mb-4 mx-2">
+        <h4 class="d-flex text-center m-auto">PSC Tracking System</h4>
         <button
           @click="handleLogout"
-          class="btn btn-danger rounded-pill px-md-5 ms-auto"
+          class="btn btn-danger rounded-pill px-md-5"
         >
           <font-awesome-icon :icon="['fa', 'right-from-bracket']" />
           Logout
@@ -20,21 +20,20 @@
               v-model="soNumber"
               type="text"
               placeholder="Sales Order Number"
-              class="form-control rounded-start-pill input-with-icon"
+              class="form-control rounded-start-pill input-with-icon shadow"
             />
           </div>
           <button
             @click="searchAndAddSO"
-            class="btn btn-primary rounded-end-pill w-50"
+            class="btn btn-primary rounded-end-pill w-50 shadow"
           >
             <font-awesome-icon :icon="['fa', 'plus']" />
-            Add SO
+            Search SO
           </button>
         </div>
       </div>
 
       <br>
-      <!-- <h3 class="mb-4 text-center">Pipeline</h3> -->
 
       <!-- Mobile Tabs -->
       <ul
@@ -48,7 +47,8 @@
           style="flex: 0 0 auto;"
         >
           <button
-            class="nav-link"
+            class="nav-link text-wrap"
+            style="max-width: 350px;"
             :class="{ active: index === activeTab }"
             type="button"
             @click="setActiveTab(index)"
@@ -79,7 +79,15 @@
                   :key="`${entry.isDR ? 'dr' : 'so'}-${entry.id}`"
                   class="card mb-3 shadow"
                 >
-                    <div class="card-body">
+                    <div
+                      class="card-body"
+                      @click="
+                        $router.push(
+                          entry.isDR
+                            ? `/orders/${entry.sales_order_id}`
+                            : `/orders/${entry.id}`
+                        )
+                      ">
                       <div v-if="entry.isDR">
                         <h5 class="card-title">Delivery Receipt #{{ entry.id }}</h5>
                       <p class="card-text">
@@ -94,6 +102,25 @@
                         <strong>Customer:</strong> {{ entry.customer_name }}<br />
                         <strong>Status:</strong> {{ entry.status }}
                       </p>
+
+                      <div class="mt-2" v-if="userStore.user?.role !== 'clet'">
+                        <label class="form-label mb-1 small">Change Status:</label>
+                        <select
+                          class="form-select form-select-sm"
+                          :value="entry.status"
+                          @change="e => updateStatus(entry, e.target.value)"
+                          @click.stop
+                        >
+                          <option
+                            v-for="s in statuses.slice(statuses.indexOf(entry.status))"
+                            :key="s"
+                            :value="s"
+                          >
+                            {{ s }}
+                          </option>
+                        </select>
+                      </div>
+
                     </div>
                   </div>
                 </div>
@@ -115,14 +142,14 @@
           v-for="status in statuses"
           :key="status"
         >
-          <h6>
+          <h6 class="shadow-sm">
             <font-awesome-icon :icon="iconMap[status]" class="me-2" />
             {{ status }}
           </h6>
 
           <div
             v-if="orderMap[status]?.length === 0"
-            class="text-light small mt-2 text-center"
+            class="small mt-2 text-center"
           >
             No Orders for this stage.
           </div>
@@ -138,7 +165,7 @@
             :disabled="userStore.user?.role === 'clet'"
           >
             <template #item="{ element: order }">
-              <div class="card mb-3 draggable-card">
+              <div class="card mb-3 draggable-card shadow m-1">
                 <div
                   class="card-body"
                   @click="
@@ -157,7 +184,7 @@
                   </strong>
                   <div>
                     {{ order.customer_name }}
-                    <span v-if="order.isDR" class="d-block text-muted small">
+                    <span v-if="order.isDR" class="d-block small">
                       From SO #{{ order.sales_order_id }}
                     </span>
                   </div>
@@ -268,12 +295,18 @@ async function onDragEnd({ item, to }) {
   fetchOrders();
 }
 
-async function updateStatus(order, newStatus) {
-  console.log('Old:', order.status, 'New:', newStatus);
+async function updateStatus(entry, newStatus) {
+  const oldStatus = entry.status;
+  console.log('Old:', oldStatus, 'New:', newStatus);
+
+  if (oldStatus === newStatus) return;
+
   try {
-    await handleStatusChange(order, newStatus);
+    await handleStatusChange(entry, newStatus);
+    await fetchOrders(); // Refresh UI
   } catch (err) {
-    alert(err.message);
+    console.error(err);
+    alert("Failed to update status.");
   }
 }
 
@@ -308,22 +341,12 @@ async function searchAndAddSO() {
 .glass-card {
   background: rgba(255, 255, 255, 0.85); /* Light glass background */
   backdrop-filter: blur(8px);
-  border: none;
   border-radius: 1rem;
   box-shadow: 0 0 15px rgba(0, 123, 255, 0.2);
 }
 
 .dashboard-wrapper {
   min-height: 100vh;
-}
-
-.container-fluid {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
-  border-radius: 16px;
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.25);
-  max-width: 1400px;
-  width: 100%;
 }
 
 .card {
@@ -334,7 +357,11 @@ async function searchAndAddSO() {
 }
 
 .card-body {
-  cursor: pointer;
+  cursor: grab;
+}
+
+.card-body:active {
+  cursor: grabbing;
 }
 
 .kanban-board {
@@ -342,13 +369,11 @@ async function searchAndAddSO() {
   padding-bottom: 1rem;
 }
 
-.sortable-area {
-  min-height: 150px;
-}
-
 .kanban-column {
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.438);
   border-radius: 1rem;
+  max-width: 25rem;
+  min-width: 20rem;
 }
 
 </style>
