@@ -111,24 +111,24 @@
                 v-for="item in selectedDr?.Items || []"
                 :key="item.id"
               >
-                {{ item.product_name }} — {{ item.quantity }} pcs
-                ({{ item.thickness }}mm x {{ item.width }}mm x {{ item.length }}mm)
+                {{ item.product_name }} — {{ item.quantity }} Metric Tons
+                ({{ item.length }}ft)
               </li>
             </ul>
-
-            <!-- Optionally show DR transactions here -->
             
-            <h6>Transactions</h6>
-            <ul class="list-group">
-              <li
-                class="list-group-item"
-                v-for="tx in selectedDr?.Transactions || []"
-                :key="tx.id"
-              >
-                {{ tx.status?.status }} — {{ new Date(tx.createdAt).toLocaleString() }}
-              </li>
-            </ul>
-           
+            <div>
+              <h6>Transactions</h6>
+              <ul class="list-group">
+                <li
+                  class="list-group-item"
+                  v-for="tx in selectedDr?.Transactions || []"
+                  :key="tx.id"
+                  @click="openTransactionModal(tx)"
+                >
+                  {{ tx.status?.status }} — {{ new Date(tx.createdAt).toLocaleString() }}
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -152,7 +152,8 @@
               class="btn-close"
               data-bs-dismiss="modal"
               aria-label="Close"
-            ></button>
+            >
+            </button>
           </div>
           <div class="modal-body text-center">
             <img
