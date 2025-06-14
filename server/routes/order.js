@@ -6,20 +6,9 @@ const DeliveryService = require('../services/DeliveryService');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const auth = require('../middleware/auth');
 
 const router = express.Router();
-
-// JWT Auth Middleware
-function auth(req, res, next) {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.sendStatus(401);
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
-    req.user = user;
-    next();
-  });
-}
 
 // GET-ALL SALES ORDER
 router.get('/', auth, async (req, res) => {
@@ -64,6 +53,7 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+//POST SALES ORDER
 router.post('/', async (req, res) => {
   try {
     const data = req.body;

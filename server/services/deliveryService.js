@@ -56,30 +56,28 @@ const DeliveryService = {
   },
 
   async updateTruckingInfo(drId) {
-    await sql.connect(config);
+    const axios = require('axios');
+    const DELIVERY_API_BASE = process.env.DELIVERY_API_BASE
 
-    const result = await sql.query(`
-      SELECT 
-        trucking AS trucking_name,
-        plate_no AS plate_number,
-        truck_type
-      FROM VW_DR
-      WHERE DRNo = '${drId}'
-    `);
+    try {
+      const res = await axios.get(`${DELIVERY_API_BASE}${drId}`);
+      const data = res.data;
 
-    const info = result.recordset[0];
-    if (!info) return;
-
-    await DeliveryReceipt.update(
-      {
-        trucking_name: info.trucking_name,
-        plate_number: info.plate_number,
-        truck_type: info.truck_type,
-      },
-      { where: { id: drId } }
-    );
-
-    console.log(`🚚 Updated trucking info for DR #${drId}`);
+      const match = data.find(item => parseInt(item.dr_no) === parseInt(drId));
+      if (!match) {
+        console.warn(`⚠️ No trucking info found for DR #${drId}`);
+        return;
+      }
+      const updateData = {
+        trucking_name: match.trucking,
+        plate_number: match.plate_no,
+        truck_type: match.truck_type,
+      };
+      await DeliveryReceipt.update(updateData, { where: { id: drId } });
+      console.log(`🚚 DR #${drId} updated with trucking info`);
+    } catch (err) {
+      console.error(`❌ Failed to update trucking info for DR #${drId}:`, err.message);
+    }
   },
 };
 

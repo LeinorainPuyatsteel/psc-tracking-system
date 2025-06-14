@@ -6,7 +6,8 @@ const {
   Status,
   User,
   DeliveryReceipt,
-  Item
+  Item,
+  StatusChangeRequest
 } = require('./models');
 
 const getRandom = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -34,6 +35,12 @@ const seed = async () => {
     username: 'girlie',
     password: hashed,
     role: 'girlie'
+  });
+
+  await User.create({
+    username: 'amado',
+    password: hashed,
+    role: 'amado'
   });
 
   await Status.bulkCreate([
@@ -109,9 +116,6 @@ const seed = async () => {
       status_id: 1
     });
   }
-
-  console.log('✅ Full seed complete: Users, Statuses, Sales Orders, DRs, Items, and Transactions.');
-  process.exit();
 };
 
 seed();

@@ -12,7 +12,23 @@
         </button>
       </div>
 
-      <div class="so-loader d-flex align-items-center px-md-4">
+      <div v-if="userStore.user?.id === 4">
+        <h5>Pending Rollback Requests</h5>
+        <div v-for="req in rollbackRequests" :key="req.id" class="d-flex align-items-center justify-content-between border p-2 mb-2 rounded">
+          <div>
+            <strong>DR ID:</strong> {{ req.delivery_receipt_id }} |
+            <strong>From:</strong> {{ statuses[req.from_status] }} →
+            <strong>To:</strong> {{ statuses[req.to_status] }} |
+            <strong>Note:</strong> {{ req.note }}
+          </div>
+          <div>
+            <button @click="approveRequest(req.id)" class="btn btn-success btn-sm me-2">Approve</button>
+            <button @click="rejectRequest(req.id)" class="btn btn-danger btn-sm">Reject</button>
+          </div>
+        </div>
+      </div>
+      
+      <div v-if="userStore.user?.role !== 'clet'" class="d-flex align-items-center px-md-4">
         <div class="d-flex align-items-center">
           <div class="input-icon-wrapper">
             <font-awesome-icon class="input-icon px-3" :icon="['fa', 'magnifying-glass']" />
@@ -31,7 +47,6 @@
           </button>
         </div>
       </div>
-
       <br>
 
       <!-- Mobile Tabs -->
@@ -202,6 +217,7 @@ import { useRouter } from "vue-router";
 import { useUserStore } from "@/stores/user";
 import { useOrders } from "@/composables/useOrders";
 import { createOrder } from "@/services/orderService";
+import { approveRollbackRequest, rejectRollbackRequest } from "@/services/rollbackRequestService";
 import draggable from "vuedraggable";
 
 const userStore = useUserStore();
@@ -217,7 +233,9 @@ const {
   moveOrderBack,
   iconMap,
   slugify,
-  resetOrderMap
+  resetOrderMap,
+  rollbackRequests,
+  loadRollbackRequests
 } = useOrders();
 
 let touchStartX = 0
@@ -269,7 +287,10 @@ function setActiveTab(index) {
   });
 }
 
-onMounted(fetchOrders);
+onMounted(async () => {
+  await fetchOrders();
+  await loadRollbackRequests();
+});
 
 function handleLogout() {
   userStore.logout();
@@ -284,11 +305,12 @@ async function onDragEnd({ item, to }) {
 
   try {
     await handleStatusChange(order, newStatus);
+    fetchOrders();
+    loadRollbackRequests();
   } catch (err) {
     alert(err.message);
     await fetchOrders();
   }
-  fetchOrders();
 }
 
 async function updateStatus(entry, newStatus) {
@@ -299,7 +321,8 @@ async function updateStatus(entry, newStatus) {
 
   try {
     await handleStatusChange(entry, newStatus);
-    await fetchOrders(); // Refresh UI
+    await fetchOrders();
+    await loadRollbackRequests();
   } catch (err) {
     console.error(err);
     alert("Failed to update status.");
@@ -315,6 +338,7 @@ async function searchAndAddSO() {
 
     await createOrder(soData);
     await fetchOrders();
+    await loadRollbackRequests();
     alert("Sales Order added successfully!");
   } catch (err) {
     if (err.response?.data?.error === "Duplicate entry detected") {
@@ -325,6 +349,32 @@ async function searchAndAddSO() {
       console.error("Create failed:", err);
       alert("Something went wrong while adding the order.");
     }
+  }
+}
+
+async function approveRequest(id) {
+  const confirmed = confirm("Are you sure you want to approve this rollback request?");
+  if (!confirmed) return;
+  try {
+    await approveRollbackRequest(id);
+    await fetchOrders();
+    await loadRollbackRequests();
+  } catch (err) {
+    console.error("Approval failed:", err);
+    alert("Failed to approve request.");
+  }
+}
+
+async function rejectRequest(id) {
+  const confirmed = confirm("Are you sure you want to reject this rollback request?");
+  if (!confirmed) return;
+  try {
+    await rejectRollbackRequest(id);
+    await fetchOrders();
+    await loadRollbackRequests();
+  } catch (err) {
+    console.error("Approval failed:", err);
+    alert("Failed to approve request.");
   }
 }
 

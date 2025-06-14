@@ -12,19 +12,20 @@ const SalesOrder = sequelize.define(
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
+    delivery_status: DataTypes.STRING,
     customer_name: DataTypes.STRING,
     warehouse_contact_person: DataTypes.STRING,
     warehouse_address: DataTypes.STRING,
     warehouse_region: DataTypes.STRING,
     warehouse_contact_number: DataTypes.STRING,
-    psr_name: DataTypes.STRING,
+    psr_name: DataTypes.STRING
   },
   {
     tableName: "sales_order",
   }
 );
 
-SalesOrder.associate = (models) => {
+SalesOrder.associate = models => {
   SalesOrder.hasMany(models.DeliveryReceipt, { foreignKey: "sales_order_id" });
   SalesOrder.hasMany(models.Transaction, { foreignKey: "sales_order_id" });
   SalesOrder.hasMany(models.Item, { foreignKey: "sales_order_id" });

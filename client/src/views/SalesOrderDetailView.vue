@@ -32,8 +32,8 @@
       <strong>Status:</strong> {{ order.status?.status }}
     </p>
     <a
-      v-if="userStore.user?.role !== 'girlie' && order.customer_contact_number"
-      :href="`sms:${order.customer_contact_number}?body=${encodeURIComponent(smsMessage)}`"
+      v-if="userStore.user?.role !== 'girlie'"
+      :href="`sms:${order.customer_contact_number || ''}?body=${encodeURIComponent(smsMessage)}`"
       class="btn btn-primary mb-3"
     >
       Notify Customer via SMS
@@ -44,8 +44,7 @@
     <h5 v-if="userStore.user?.role !== 'clet'">Items</h5>
     <ul class="list-group mb-4" v-if="userStore.user?.role !== 'clet'">
       <li class="list-group-item" v-for="item in order.Items" :key="item.id">
-        {{ item.product_name }} — {{ item.quantity }} Metric Tons
-        ({{ item.length }}ft)
+        {{ item.product_name }} {{ item.length }}FT — {{ item.quantity }} Metric Tons
       </li>
     </ul>
     <div v-if="order.current_status_id >= 2">
@@ -89,7 +88,7 @@
       aria-hidden="true"
       ref="modalRef"
     >
-      <div class="modal-dialog">
+      <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Delivery Receipt #{{ selectedDr?.id }}</h5>
@@ -102,6 +101,11 @@
             </button>
           </div>
           <div class="modal-body">
+            <div v-if="selectedDr?.current_status_id >= 3">
+              <p><strong>Trucking Name: </strong>{{ selectedDr?.trucking_name }}</p>
+              <p><strong>Plate Number: </strong>{{ selectedDr?.plate_number }}</p>
+              <p><strong>Truck Type: </strong>{{ selectedDr?.truck_type }}</p>
+            </div>
             <p><strong>Status:</strong> {{ selectedDr?.status?.status }}</p>
 
             <h6 v-if="userStore.user?.role !== 'clet'">Items</h6>
@@ -111,8 +115,7 @@
                 v-for="item in selectedDr?.Items || []"
                 :key="item.id"
               >
-                {{ item.product_name }} — {{ item.quantity }} Metric Tons
-                ({{ item.length }}ft)
+                {{ item.product_name }} {{ item.length }}FT — {{ item.quantity }} Metric Tons
               </li>
             </ul>
             

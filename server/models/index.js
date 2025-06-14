@@ -7,6 +7,7 @@ const Item = require('./Item');
 const Transaction = require('./Transaction');
 const Status = require('./Status');
 const User = require('./User');
+const StatusChangeRequest = require('./StatusChangeRequest');
 
 const models = {
   SalesOrder,
@@ -14,7 +15,8 @@ const models = {
   Item,
   Transaction,
   Status,
-  User
+  User,
+  StatusChangeRequest
 };
 
 // Run associations

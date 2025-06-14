@@ -5,6 +5,7 @@ const authRoutes = require('./routes/auth');
 const orderRoutes = require('./routes/order');
 const deliveryRoutes = require('./routes/deliveryReceipt');
 const sapSORoute = require('./routes/sapSalesOrder');
+const rollbackRequestRoutes = require('./routes/rollbackRequest');
 const path = require('path');
 
 require('dotenv').config();
@@ -22,6 +23,9 @@ app.use('/api/sap-so', sapSORoute);
 app.use('/api/delivery-receipts', deliveryRoutes);
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+app.use('/api/rollback-requests', rollbackRequestRoutes);
+app.use('/api/rollback-request', rollbackRequestRoutes);
 
 sequelize.sync().then(() => {
   console.log('JWT_SECRET:', process.env.JWT_SECRET)

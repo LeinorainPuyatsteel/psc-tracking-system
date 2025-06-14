@@ -2,6 +2,8 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
+const DeliveryService = require('../services/DeliveryService');
+const auth = require('../middleware/auth');
 
 const {
     SalesOrder,
@@ -17,17 +19,6 @@ const multer = require('multer');
 
 const uploadDir = path.join(__dirname, '../uploads/transactions');
 fs.mkdirSync(uploadDir, { recursive: true });
-
-function auth(req, res, next) {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.sendStatus(401);
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
-    req.user = user;
-    next();
-  });
-}
 
 const storage = multer.diskStorage({
   destination: uploadDir,
@@ -50,6 +41,10 @@ router.put('/:id/update-status', auth, upload.single('image'), async (req, res) 
 
     if (status_id < dr.current_status_id) {
       return res.status(400).json({ message: 'Cannot move to an earlier status.' });
+    }
+
+    if (parseInt(status_id) === 3) {
+      await DeliveryService.updateTruckingInfo(dr.id);
     }
 
     dr.current_status_id = status_id;

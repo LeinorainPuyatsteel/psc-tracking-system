@@ -36,6 +36,8 @@ DeliveryReceipt.associate = models => {
       as: "status",
     });
     DeliveryReceipt.hasMany(models.Item, { foreignKey: 'delivery_receipt_id' });
+
+    DeliveryReceipt.hasMany(models.StatusChangeRequest, { foreignKey: 'delivery_receipt_id'});
 };
 
 module.exports = DeliveryReceipt;

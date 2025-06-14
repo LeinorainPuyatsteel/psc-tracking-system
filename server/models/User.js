@@ -9,4 +9,8 @@ const User = sequelize.define('User', {
   tableName: 'user',
 });
 
+User.associate = models => {
+  User.hasMany(models.StatusChangeRequest, { foreignKey: 'approved_by' });
+};
+
 module.exports = User;

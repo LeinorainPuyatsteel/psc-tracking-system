@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const { Op } = require('sequelize');
+const auth = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -15,7 +16,13 @@ router.post('/login', async (req, res) => {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
-  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
+  const token = jwt.sign(
+    { 
+      id: user.id,
+      username: user.username,
+      role: user.role,
+    }, 
+    process.env.JWT_SECRET);
   res.json({ token });
 });
 
@@ -25,31 +32,14 @@ router.post('/register', async (req, res) => {
   res.status(201).send();
 });
 
-const authenticateToken = async (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) return res.sendStatus(401);
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findByPk(decoded.id);
-    if (!user) return res.sendStatus(404);
-    req.user = user;
-    next();
-  } catch (err) {
-    res.sendStatus(403);
-  }
-};
-
 // GET /api/auth/me
-router.get('/me', authenticateToken, (req, res) => {
+router.get('/me', auth, (req, res) => {
   console.log('User info being sent:', req.user);
   console.log('---- /me called ----');
   console.log('User ID:', req.user.id);
   console.log('Username:', req.user.username);
   console.log('Role:', req.user.role);
-  res.set('Cache-Control', 'no-store'); // ⬅ Add this
+  res.set('Cache-Control', 'no-store');
   res.json({
     id: req.user.id,
     username: req.user.username,

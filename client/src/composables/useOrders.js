@@ -1,6 +1,7 @@
 import { ref, reactive } from "vue";
 import { fetchAllOrders, createOrder, updateOrderStatus, fetchDeliveryReceipts } from "@/services/orderService";
 import { promptForImage } from "@/services/imageService";
+import { submitRollbackRequest, fetchRollbackRequests } from "@/services/rollbackRequestService";
 
 const statuses = [ 
   "Sales Order is Being Prepared",
@@ -66,6 +67,17 @@ export function useOrders() {
   );
 };
 
+  const rollbackRequests = ref([]);
+  
+  const loadRollbackRequests = async (orderId = null) => {
+    try {
+      rollbackRequests.value = await fetchRollbackRequests(orderId);
+    } catch (err) {
+      console.error("Failed to fetch rollback requests:", err);
+      rollbackRequests.value = res.data;
+    }
+  };
+
   const handleStatusChange = async (order, newStatus) => {
     const isDR = !!order.isDR;
     console.log(isDR)
@@ -75,7 +87,24 @@ export function useOrders() {
     const newIndex = statuses.indexOf(newStatus);
 
     if (newIndex === oldIndex) return;
-    if (newIndex < oldIndex) throw new Error("Cannot move to an earlier stage.");
+    if (newIndex < oldIndex) {
+      const note = prompt(`Enter reason for reverting from ${oldStatus} to ${newStatus}:`);
+      if (!note) return alert('Rollback requires a reason.');
+
+      try {
+        await submitRollbackRequest({
+          delivery_receipt_id: order.id,
+          from_status: oldIndex + 1,
+          to_status: newIndex + 1,
+          note,
+        });
+        alert('Rollback request sent for approval.');
+      } catch (err) {
+        alert('Failed to submit rollback request.');
+        console.error(err);
+      }
+      return;
+    };
 
     if (!order.isDR && oldIndex === 0 && newIndex === 1) {
       await fetchDeliveryReceipts(order.id);
@@ -111,6 +140,8 @@ export function useOrders() {
     handleStatusChange,
     iconMap,
     slugify,
-    resetOrderMap
+    resetOrderMap,
+    rollbackRequests,
+    loadRollbackRequests
   };
 }
