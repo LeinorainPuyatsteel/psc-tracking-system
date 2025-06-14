@@ -48,9 +48,33 @@ const seed = async () => {
   ]);
 
   const sampleCustomers = [
-    { id: 14915, name: 'Alpha Corp', address: '123 Alpha Street', contact: '1234567890' },
-    { id: 16459, name: 'Beta Inc', address: '456 Beta Avenue', contact: '2345678901' },
-    { id: 15334, name: 'Gamma Ltd', address: '789 Gamma Blvd', contact: '3456789012' },
+    {
+      id: 14915,
+      name: 'Alpha Corp',
+      address: '123 Alpha Street',
+      contact: '1234567890',
+      warehouse_contact_person: 'Juan',
+      warehouse_region: 'NCR',
+      psr_name: 'Steven'
+    },
+    {
+      id: 16459,
+      name: 'Beta Inc',
+      address: '456 Beta Avenue',
+      contact: '2345678901',
+      warehouse_contact_person: 'Maria',
+      warehouse_region: 'Region IV-A',
+      psr_name: 'Harry'
+    },
+    {
+      id: 15334,
+      name: 'Gamma Ltd',
+      address: '789 Gamma Blvd',
+      contact: '3456789012',
+      warehouse_contact_person: 'Jose',
+      warehouse_region: 'Region III',
+      psr_name: 'Charlie'
+    }
   ];
 
   for (const customer of sampleCustomers) {
@@ -58,10 +82,27 @@ const seed = async () => {
     const salesOrder = await SalesOrder.create({
       id: customer.id,
       customer_name: customer.name,
-      customer_address: customer.address,
-      customer_contact_number: customer.contact,
+      warehouse_address: customer.address,
+      warehouse_contact_number: customer.contact,
+      warehouse_contact_person: customer.warehouse_contact_person,
+      warehouse_region: customer.warehouse_region,
+      psr_name: customer.psr_name,
       current_status_id: 1
     });
+
+    const itemCount = getRandom(4, 8);
+    const items = Array.from({ length: itemCount }).map((_, i) => ({
+      sales_order_id: salesOrder.id,
+      product_name: `Product ${i + 1}`,
+      quantity: getRandomFloat(1, 10),
+      thickness: getRandomFloat(0.5, 2),
+      width: getRandom(100, 300),
+      length: getRandom(100, 1000),
+      linear_meter: getRandomFloat(1, 50),
+      metric_tons: getRandomFloat(1, 50)
+    }));
+
+    await Item.bulkCreate(items);
 
     await Transaction.create({
       sales_order_id: salesOrder.id,

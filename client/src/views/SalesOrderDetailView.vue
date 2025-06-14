@@ -6,12 +6,28 @@
 
     <h4 class="mb-3">Sales Order #{{ order.id }}</h4>
     <p><strong>Customer:</strong> {{ order.customer_name }}</p>
-    <p v-if="userStore.user?.role !== 'girlie'">
-      <strong>Address:</strong> {{ order.customer_address }}
-    </p>
-    <p v-if="userStore.user?.role !== 'girlie'">
-      <strong>Contact:</strong> {{ order.customer_contact_number }}
-    </p>
+    <div v-if="userStore.user?.role !== 'girlie'">
+      <p>
+        <strong>Contact Person:</strong>
+        {{ order.warehouse_contact_person }}
+      </p>
+      <p>
+        <strong>Warehouse Address:</strong>
+        {{ order.warehouse_address }}
+      </p>
+      <p>
+        <strong>Warehouse Contact Number:</strong>
+        {{ order.warehouse_contact_number }}
+      </p>
+      <p>
+        <strong>Warehouse Region:</strong>
+        {{ order.warehouse_region }}
+      </p>
+      <p>
+        <strong>Professional Sales Represenatative:</strong>
+        {{ order.psr_name }}
+      </p>
+    </div>
     <p>
       <strong>Status:</strong> {{ order.status?.status }}
     </p>
@@ -28,26 +44,27 @@
     <h5 v-if="userStore.user?.role !== 'clet'">Items</h5>
     <ul class="list-group mb-4" v-if="userStore.user?.role !== 'clet'">
       <li class="list-group-item" v-for="item in order.Items" :key="item.id">
-        {{ item.product_name }} — {{ item.quantity }} pcs
-        ({{ item.thickness }}mm x {{ item.width }}mm x {{ item.length }}ft)
+        {{ item.product_name }} — {{ item.quantity }} Metric Tons
+        ({{ item.length }}ft)
       </li>
     </ul>
-
-    <h5>Delivery Receipts</h5>
-    <ul class="list-group mb-4">
-      <li
-        class="list-group-item d-flex justify-content-between align-items-center"
-        v-for="dr in order.DeliveryReceipts"
-        :key="dr.id"
-        @click="openDeliveryModal(dr)"
-        role="button"
-      >
-        <span class="text-nowrap pe-3">
-          DR #{{ dr.id }}
-        </span>
-        <span class="badge bg-info text-wrap mw-">{{ dr.status?.status }}</span>
-      </li>
-    </ul>
+    <div v-if="order.current_status_id >= 2">
+      <h5>Delivery Receipts</h5>
+      <ul class="list-group mb-4">
+        <li
+          class="list-group-item d-flex justify-content-between align-items-center"
+          v-for="dr in order.DeliveryReceipts"
+          :key="dr.id"
+          @click="openDeliveryModal(dr)"
+          role="button"
+        >
+          <span class="text-nowrap pe-3">
+            DR #{{ dr.id }}
+          </span>
+          <span class="badge bg-info text-wrap mw-">{{ dr.status?.status }}</span>
+        </li>
+      </ul>
+    </div>
 
     <h5>Transaction Logs</h5>
     <ul class="list-group">

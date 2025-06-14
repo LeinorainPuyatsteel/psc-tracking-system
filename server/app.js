@@ -4,6 +4,7 @@ const sequelize = require('./database');
 const authRoutes = require('./routes/auth');
 const orderRoutes = require('./routes/order');
 const deliveryRoutes = require('./routes/deliveryReceipt');
+const sapSORoute = require('./routes/sapSalesOrder');
 const path = require('path');
 
 require('dotenv').config();
@@ -16,6 +17,7 @@ app.use(express.static('public'));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/sap-so', sapSORoute);
 
 app.use('/api/delivery-receipts', deliveryRoutes);
 

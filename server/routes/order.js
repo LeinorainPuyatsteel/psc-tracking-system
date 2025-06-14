@@ -65,10 +65,8 @@ router.get('/', auth, async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  
   try {
     const data = req.body;
-
     data.current_status_id = 1;
 
     if (data.DeliveryReceipts && Array.isArray(data.DeliveryReceipts)) {
@@ -85,10 +83,8 @@ router.post('/', async (req, res) => {
 
     const order = await SalesOrder.create(data, {
       include: [
-        {
-          model: DeliveryReceipt,
-          include: [Item],
-        },
+        DeliveryReceipt,
+        Item,
         Transaction,
       ],
     });
@@ -96,9 +92,7 @@ router.post('/', async (req, res) => {
     console.log('Incoming order data:', data);
 
     res.json({ message: 'Order saved', order });
-
   } catch (err) {
-
     if (err instanceof UniqueConstraintError) {
       return res.status(400).json({
         error: 'Duplicate entry detected',
@@ -106,16 +100,13 @@ router.post('/', async (req, res) => {
       });
     } else {
       console.error('❌ Order create failed:', err);
-
       return res.status(500).json({
         error: 'Server error',
         details: err.message,
       });
     }
-  
   }
 });
-
 
 // Ensure upload directory exists
 const uploadDir = path.join(__dirname, '../uploads/transactions');
@@ -130,7 +121,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// PUT SO with image upload
+// PUT image upload
 router.put('/:id/update-status', auth, upload.single('image'), async (req, res) => {
   try {
     const { status_id } = req.body;

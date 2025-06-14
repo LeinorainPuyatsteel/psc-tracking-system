@@ -13,8 +13,11 @@ const SalesOrder = sequelize.define(
       defaultValue: 0,
     },
     customer_name: DataTypes.STRING,
-    customer_address: DataTypes.STRING,
-    customer_contact_number: DataTypes.STRING,
+    warehouse_contact_person: DataTypes.STRING,
+    warehouse_address: DataTypes.STRING,
+    warehouse_region: DataTypes.STRING,
+    warehouse_contact_number: DataTypes.STRING,
+    psr_name: DataTypes.STRING,
   },
   {
     tableName: "sales_order",

@@ -15,11 +15,8 @@ const Item = sequelize.define('Item', {
   },
   product_name: DataTypes.STRING,
   quantity: DataTypes.FLOAT,
-  thickness: DataTypes.FLOAT,
-  width: DataTypes.INTEGER,
-  length: DataTypes.INTEGER,
-  linear_meter: DataTypes.FLOAT,
-  metric_tons: DataTypes.FLOAT
+  length: DataTypes.FLOAT,
+  linear_meter: DataTypes.FLOAT
 }, {
   tableName: 'item',
 });

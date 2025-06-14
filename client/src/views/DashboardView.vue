@@ -27,7 +27,6 @@
             @click="searchAndAddSO"
             class="btn btn-primary rounded-end-pill w-50 shadow"
           >
-            <font-awesome-icon :icon="['fa', 'plus']" />
             Search SO
           </button>
         </div>
@@ -79,17 +78,17 @@
                   :key="`${entry.isDR ? 'dr' : 'so'}-${entry.id}`"
                   class="card mb-3 shadow"
                 >
-                    <div
-                      class="card-body"
-                      @click="
-                        $router.push(
-                          entry.isDR
-                            ? `/orders/${entry.sales_order_id}`
-                            : `/orders/${entry.id}`
-                        )
-                      ">
-                      <div v-if="entry.isDR">
-                        <h5 class="card-title">Delivery Receipt #{{ entry.id }}</h5>
+                  <div
+                    class="card-body"
+                    @click="
+                      $router.push(
+                        entry.isDR
+                          ? `/orders/${entry.sales_order_id}`
+                          : `/orders/${entry.id}`
+                      )
+                    ">
+                    <div v-if="entry.isDR">
+                      <h5 class="card-title">Delivery Receipt #{{ entry.id }}</h5>
                       <p class="card-text">
                         <strong>Customer:</strong> {{ entry.customer_name }}<br />
                         <strong>SO #:</strong> {{ entry.sales_order_id }}<br />
@@ -102,25 +101,23 @@
                         <strong>Customer:</strong> {{ entry.customer_name }}<br />
                         <strong>Status:</strong> {{ entry.status }}
                       </p>
-
-                      <div class="mt-2" v-if="userStore.user?.role !== 'clet'">
-                        <label class="form-label mb-1 small">Change Status:</label>
-                        <select
-                          class="form-select form-select-sm"
-                          :value="entry.status"
-                          @change="e => updateStatus(entry, e.target.value)"
-                          @click.stop
+                    </div>
+                    <div class="mt-2" v-if="userStore.user?.role !== 'clet'">
+                      <label class="form-label mb-1 small">Change Status:</label>
+                      <select
+                        class="form-select form-select-sm"
+                        :value="entry.status"
+                        @change="e => updateStatus(entry, e.target.value)"
+                        @click.stop
+                      >
+                        <option
+                          v-for="s in statuses.slice(statuses.indexOf(entry.status))"
+                          :key="s"
+                          :value="s"
                         >
-                          <option
-                            v-for="s in statuses.slice(statuses.indexOf(entry.status))"
-                            :key="s"
-                            :value="s"
-                          >
-                            {{ s }}
-                          </option>
-                        </select>
-                      </div>
-
+                          {{ s }}
+                        </option>
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -142,7 +139,7 @@
           v-for="status in statuses"
           :key="status"
         >
-          <h6 class="shadow-sm">
+          <h6 class="shadow-sm bg-primary bg-gradient" style=" color: white">
             <font-awesome-icon :icon="iconMap[status]" class="me-2" />
             {{ status }}
           </h6>
@@ -211,7 +208,6 @@ const userStore = useUserStore();
 const router = useRouter();
 const activeTab = ref(0);
 const soNumber = ref('');
-
 
 const {
   statuses,
@@ -314,27 +310,24 @@ async function searchAndAddSO() {
   if (!soNumber.value) return alert("Please enter a Sales Order number.");
 
   try {
-    const response = await axios.get('api/mock_so.json')
-    const mockSOList = response.data
-    const mockSO = mockSOList.find(so => so.id === parseInt(soNumber.value))
+    const response = await axios.get(`/api/sap-so/${soNumber.value}`);
+    const soData = response.data;
 
-    if (!mockSO) {
-      alert(`Sales Order #${soNumber.value} not found.`)
-      return
-    }
-
-    await createOrder(mockSO);
+    await createOrder(soData);
     await fetchOrders();
     alert("Sales Order added successfully!");
   } catch (err) {
     if (err.response?.data?.error === "Duplicate entry detected") {
       alert(`❌ Cannot add: Sales Order #${soNumber.value} already exists.`);
+    } else if (err.response?.status === 404) {
+      alert(`Sales Order #${soNumber.value} not found in SAP.`);
     } else {
       console.error("Create failed:", err);
       alert("Something went wrong while adding the order.");
     }
   }
 }
+
 </script>
 
 <style scoped>

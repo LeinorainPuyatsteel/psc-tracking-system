@@ -1,34 +1,37 @@
-const axios = require('axios');
+const { sql, config } = require('../config/mssql');
 const { DeliveryReceipt, Item } = require('../models');
 
 const DeliveryService = {
   async fetchAndAttachReceipts(order) {
-    const res = await axios.get(
-      `http://192.168.0.210/psc-delivery-management/index.php/api/get_dr_using_so/${order.id}`
-    );
+    await sql.connect(config);
 
-    const data = res.data;
+    const result = await sql.query(`
+      SELECT 
+        DRNo AS dr_no,
+        Dscription AS product_name,
+        Quantity AS quantity,
+        U_Length_FT AS length,
+        U_LM AS linear_meter
+      FROM VW_DR
+      WHERE SONo = '${order.id}'
+    `);
+
+    const rows = result.recordset;
+
     const grouped = {};
-
-    for (const item of data) {
-      if (!grouped[item.dr_no]) {
-        grouped[item.dr_no] = {
-          dr_no: item.dr_no,
-          trucking: item.trucking,
-          plate_no: item.plate_no,
-          truck_type: item.truck_type,
+    for (const row of rows) {
+      if (!grouped[row.dr_no]) {
+        grouped[row.dr_no] = {
+          dr_no: row.dr_no,
           items: [],
         };
       }
 
-      grouped[item.dr_no].items.push({
-        product_name: item.item_name,
-        quantity: parseFloat(item.qty),
-        thickness: parseFloat(item.thickness),
-        width: parseInt(item.width),
-        length: parseInt(item.length),
-        linear_meter: parseFloat(item.lm),
-        metric_tons: parseFloat(item.mt),
+      grouped[row.dr_no].items.push({
+        product_name: row.product_name,
+        quantity: row.quantity,
+        length: row.length,
+        linear_meter: row.linear_meter,
       });
     }
 
@@ -38,23 +41,46 @@ const DeliveryService = {
       const dr = await DeliveryReceipt.create({
         id: parseInt(dr_no),
         sales_order_id: order.id,
-        trucking_name: group.trucking,
-        plate_number: group.plate_no,
-        truck_type: group.truck_type,
         current_status_id: 2,
       });
 
       for (const item of group.items) {
         await Item.create({
           ...item,
-          sales_order_id: order.id,
           delivery_receipt_id: dr.id,
         });
       }
     }
 
-    console.log(`✅ DRs saved for SO ${order.id}`);
-  }
+    console.log(`✅ DRs saved from MSSQL for SO ${order.id}`);
+  },
+
+  async updateTruckingInfo(drId) {
+    await sql.connect(config);
+
+    const result = await sql.query(`
+      SELECT 
+        trucking AS trucking_name,
+        plate_no AS plate_number,
+        truck_type
+      FROM VW_DR
+      WHERE DRNo = '${drId}'
+    `);
+
+    const info = result.recordset[0];
+    if (!info) return;
+
+    await DeliveryReceipt.update(
+      {
+        trucking_name: info.trucking_name,
+        plate_number: info.plate_number,
+        truck_type: info.truck_type,
+      },
+      { where: { id: drId } }
+    );
+
+    console.log(`🚚 Updated trucking info for DR #${drId}`);
+  },
 };
 
 module.exports = DeliveryService;
